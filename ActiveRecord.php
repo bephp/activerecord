@@ -57,8 +57,8 @@ abstract class ActiveRecord extends Base {
 		self::$db = $db;
 	}
 	public function find($id = null) {
-		if ($id) $this->eq('id', $id)->limit(1);
-		return self::query($this->_buildSql(array('select', 'from', 'where', 'group', 'order', 'limit')), $this);
+		if ($id) $this->eq('id', $id);
+		return self::query($this->limit(1)->_buildSql(array('select', 'from', 'where', 'group', 'order', 'limit')), $this);
 	}
 	public function findAll() {
 		return self::queryAll($this->_buildSql(array('select', 'from', 'where', 'group', 'order', 'limit')));
