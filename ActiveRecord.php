@@ -33,6 +33,7 @@ abstract class ActiveRecord extends Base {
 		'between' => 'BETWEEN',
 		'like' => 'LIKE',
 		'in' => 'IN',
+		'notin' => 'NOT IN',
 		'isnull' => 'IS NULL',
 		'isnotnull' => 'IS NOT NULL', 'notnull' => 'IS NOT NULL', 
 	);
@@ -45,7 +46,7 @@ abstract class ActiveRecord extends Base {
 		'top' => 'TOP',
 	);
 	public static $defaultSqlExpressions = array('expressions' => array(), 'wrap' => false,
-		'select'=>null, 'insert'=>null, 'update'=>' ', 'delete'=>' ', 
+		'select'=>null, 'insert'=>'INSERT INTO', 'update'=>'UPDATE ', 'delete'=>'DELETE ', 
 		'from'=>null, 'values' => null, 'where'=>null, 'limit'=>null, 'order'=>null, 'group' => null);
 	protected $sqlExpressions = array();
 	public function __construct($config = array()) {
@@ -63,8 +64,11 @@ abstract class ActiveRecord extends Base {
 	public function findAll() {
 		return self::queryAll($this->_buildSql(array('select', 'from', 'where', 'group', 'order', 'limit')));
 	}
+	public function delete() {
+		return self::exec($this->eq('id', $this->id)->_buildSql(array('delete', 'from', 'where')));
+	}
 	public static function exec($sql) {
-		return self::$db->prepare($sql)->execute();
+		return self::$db->exec($sql);
 	}
 	public static function query($sql, $obj) {
 		$sth = self::$db->prepare($sql);
