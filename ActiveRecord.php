@@ -46,14 +46,19 @@ abstract class ActiveRecord extends Base {
 		'top' => 'TOP',
 	);
 	public static $defaultSqlExpressions = array('expressions' => array(), 'wrap' => false,
-		'select'=>null, 'insert'=>'INSERT INTO', 'update'=>'UPDATE ', 'delete'=>'DELETE ', 
+		'select'=>null, 'insert'=>'INSERT INTO', 'update'=>'UPDATE ', 'set' => null, 'delete'=>'DELETE ', 
 		'from'=>null, 'values' => null, 'where'=>null, 'limit'=>null, 'order'=>null, 'group' => null);
 	protected $sqlExpressions = array();
+	
+	public $table;
+	public $dirty = array();
+
 	public function __construct($config = array()) {
 		parent::__construct($config);
 		//$this->reset();
 	}
-	public function reset() {$this->sqlExpressions = self::$defaultSqlExpressions;return $this;}
+	public function reset() {$this->dirty = array();$this->sqlExpressions = self::$defaultSqlExpressions;return $this;}
+	public function dirty($dirty = array()){$this->dirty = $dirty;return $this;}
 	public static function setDb($db) {
 		self::$db = $db;
 	}
@@ -67,6 +72,11 @@ abstract class ActiveRecord extends Base {
 	public function delete() {
 		return self::exec($this->eq('id', $this->id)->_buildSql(array('delete', 'from', 'where')));
 	}
+	public function update() {
+		if(!$this->set) $this->set = new 
+		foreach($this->dirty) 
+		var_dump($this->dirty);
+	}
 	public static function exec($sql) {
 		return self::$db->exec($sql);
 	}
@@ -75,7 +85,7 @@ abstract class ActiveRecord extends Base {
 		$sth->setFetchMode( PDO::FETCH_INTO , ($obj ? : new get_called_class()));
 		$sth->execute();
 		$sth->fetch( PDO::FETCH_INTO );
-		return $obj;
+		return $obj->dirty();
 	}
 	public static function queryAll($sql, $class = null) {
 		$class = $class ? : get_called_class();
@@ -83,12 +93,12 @@ abstract class ActiveRecord extends Base {
 		$sth->setFetchMode( PDO::FETCH_INTO , new $class);
 		$sth->execute();
 		$result = array();
-		while ($obj = $sth->fetch( PDO::FETCH_INTO )) $result[] = clone $obj;
+		while ($obj = $sth->fetch( PDO::FETCH_INTO )) $result[] = clone $obj->dirty();
 		return $result;
 	}
 	public function _buildSql($sqls = array()) {
 		array_walk($sqls, function (&$n, $i, $o){
-			if ('select' === $n && null == $o->$n) $n = strtoupper($n).' *';
+			if ('select' === $n && null == $o->$n) $n = strtoupper($n). ' '.$o->table.'.*';
 			elseif ('from' === $n && null == $o->$n) $n = strtoupper($n).' '. $o->table;
 			else $n = (null !== $o->$n) ? $o->$n. ' ' : '';
 		}, $this);
@@ -114,7 +124,7 @@ abstract class ActiveRecord extends Base {
 		return $this;
 	}
 	protected function addCondition($field, $operator, $value, $op = 'AND') {
-		if ($exp =  new Expressions(array('source'=>$field, 'operator'=>$operator, 'target'=>(is_array($value) ? 
+		if ($exp =  new Expressions(array('source'=>$this->table.'.'.$field, 'operator'=>$operator, 'target'=>(is_array($value) ? 
 			new WrapExpressions(array('target' => $value)) : $value)))) {
 			if (!$this->wrap)
 				$this->_addCondition($exp, $op);
@@ -137,10 +147,11 @@ abstract class ActiveRecord extends Base {
 	public function __set($var, $val) {
 		if (array_key_exists($var, $this->sqlExpressions)) $this->sqlExpressions[$var] = $val;
 		elseif (array_key_exists($var, self::$defaultSqlExpressions)) $this->sqlExpressions[$var] = $val;
-		else parent::__set($var, $val);
+		else $this->dirty[$var] = $this->data[$var] = $val;
 	}
 	public function & __get($var) {
 		if (array_key_exists($var, $this->sqlExpressions)) return $this->sqlExpressions[$var];
-		else $r = parent::__get($var); return $r;
+		else //if(isset($this->data[$var])) { $var = $this->data[$var]; return $var;}
+		{$r = parent::__get($var); return $r;}
 	}
 }
