@@ -46,63 +46,71 @@ abstract class ActiveRecord extends Base {
 		'top' => 'TOP',
 	);
 	public static $defaultSqlExpressions = array('expressions' => array(), 'wrap' => false,
-		'select'=>null, 'insert'=>'INSERT INTO', 'update'=>'UPDATE ', 'set' => null, 'delete'=>'DELETE ', 
-		'from'=>null, 'values' => null, 'where'=>null, 'limit'=>null, 'order'=>null, 'group' => null);
+		'select'=>null, 'insert'=>'INSERT INTO', 'update'=>null, 'set' => null, 'delete'=>'DELETE ', 
+		'from'=>null, 'values' => null, 'where'=>null, 'limit'=>null, 'order'=>null, 'group' => null, 
+		'params' => array());
 	protected $sqlExpressions = array();
 	
 	public $table;
+	public $primaryKey = 'id';
 	public $dirty = array();
 
 	public function __construct($config = array()) {
 		parent::__construct($config);
-		//$this->reset();
 	}
-	public function reset() {$this->dirty = array();$this->sqlExpressions = self::$defaultSqlExpressions;return $this;}
-	public function dirty($dirty = array()){$this->dirty = $dirty;return $this;}
+	public function reset() {$this->sqlExpressions = array();return $this;}
+	public function dirty($dirty = array()){$this->data = array_merge($this->data, $this->dirty = $dirty);return $this;}
 	public static function setDb($db) {
 		self::$db = $db;
 	}
 	public function find($id = null) {
-		if ($id) $this->eq('id', $id);
-		return self::query($this->limit(1)->_buildSql(array('select', 'from', 'where', 'group', 'order', 'limit')), $this);
+		if ($id) $this->eq($this->primaryKey, $id);
+		if(self::query($this->limit(1)->_buildSql(array('select', 'from', 'where', 'group', 'order', 'limit')), $this->params, $this->reset())) return $this;
+		return false;
 	}
 	public function findAll() {
-		return self::queryAll($this->_buildSql(array('select', 'from', 'where', 'group', 'order', 'limit')));
+		return self::queryAll($this->_buildSql(array('select', 'from', 'where', 'group', 'order', 'limit')), $this->param, $this->reset());
 	}
 	public function delete() {
-		return self::exec($this->eq('id', $this->id)->_buildSql(array('delete', 'from', 'where')));
+		return self::execute($this->eq($this->primaryKey, $this->{$this->primaryKey})->_buildSql(array('delete', 'from', 'where')), $this->param, $this->reset());
 	}
 	public function update() {
-		//if(!$this->set) $this->set = new 
 		foreach($this->dirty as $field => $value) $this->addCondition($field, '=', $value, '' , 'set');
-		var_dump($this->set);
+		if(self::execute($this->eq($this->primaryKey, $this->{$this->primaryKey})->_buildSql(array('update', 'set', 'where')), $this->params)) 
+			return $this->dirty()->reset();
+		return false;
 	}
-	public static function exec($sql) {
-		return self::$db->exec($sql);
+	public function insert() {
+		
 	}
-	public static function query($sql, $obj) {
-		$sth = self::$db->prepare($sql);
-		$sth->setFetchMode( PDO::FETCH_INTO , ($obj ? : new get_called_class()));
-		$sth->execute();
-		$sth->fetch( PDO::FETCH_INTO );
-		return $obj->dirty();
+	public static function execute($sql, $param = array()) {
+		return (($sth = self::$db->prepare($sql)) && $sth->execute($param));
 	}
-	public static function queryAll($sql, $class = null) {
-		$class = $class ? : get_called_class();
-		$sth = self::$db->prepare($sql);
-		$sth->setFetchMode( PDO::FETCH_INTO , new $class);
-		$sth->execute();
-		$result = array();
-		while ($obj = $sth->fetch( PDO::FETCH_INTO )) $result[] = clone $obj->dirty();
-		return $result;
+	public static function query($sql, $param = array(), $obj = null) {
+		return self::_query(function ($sth, $obj){ $sth->fetch( PDO::FETCH_INTO ); return $obj->dirty();}, $sql, $param, $obj);
+	}
+	protected static function _query($cb, $sql, $param = array(), $obj = null) {
+		if ($sth = self::$db->prepare($sql)) {
+			$sth->setFetchMode( PDO::FETCH_INTO , ($obj ? : new get_called_class()));
+			$sth->execute($param);
+			return call_user_func($cb, $sth, $obj);
+		}
+		return false;
+	}
+	public static function queryAll($sql, $param = array(), $obj = null) {
+		return self::_query(function ($sth, $obj){ 
+			$result = array();
+			while ($obj = $sth->fetch( PDO::FETCH_INTO )) $result[] = clone $obj->dirty();
+			return $result;
+		}, $sql, $param, $obj);
 	}
 	public function _buildSql($sqls = array()) {
 		array_walk($sqls, function (&$n, $i, $o){
 			if ('select' === $n && null == $o->$n) $n = strtoupper($n). ' '.$o->table.'.*';
-			elseif ('from' === $n && null == $o->$n) $n = strtoupper($n).' '. $o->table;
+			elseif (('update' === $n||'from' === $n) && null == $o->$n) $n = strtoupper($n).' '. $o->table;
 			else $n = (null !== $o->$n) ? $o->$n. ' ' : '';
 		}, $this);
-		echo 'SQL: '. implode(' ', $sqls). "\n";
+		echo 'SQL: ', implode(' ', $sqls), "\n", "PARAMS: ", implode(', ', $this->params), "\n";
 		return implode(' ', $sqls);
 	}
 	public function __call($name, $args) {
@@ -124,6 +132,13 @@ abstract class ActiveRecord extends Base {
 		return $this;
 	}
 	protected function addCondition($field, $operator, $value, $op = 'AND', $name = 'where') {
+		static $count = 0, $prefix = ':ph';
+		if (!is_array($this->params) || count($this->params) == 0) $this->params = array();
+		if (is_array($value)) foreach((array)$value as $key => $val) $this->params[$value[$key] = $prefix. ++$count] = $val;
+		else {
+			$this->params[$ph = $prefix. ++$count] = $value;
+			$value = $ph;
+		}
 		if ($exp =  new Expressions(array('source'=>('where' == $name? $this->table.'.' : '' ) .$field, 'operator'=>$operator, 'target'=>(is_array($value) ? 
 			new WrapExpressions(array('target' => $value)) : $value)))) {
 			if (!$this->wrap)
@@ -142,7 +157,7 @@ abstract class ActiveRecord extends Base {
 		if (!$this->$name) 
 			$this->$name = new Expressions(array('operator'=>strtoupper($name) , 'target'=>$exp));
 		else 
-			$this->$name->target = new Expressions(array('source'=>$this->$name->target, 'operator'=>$operator, 'target'=>$exp));	
+			$this->$name->target = new Expressions(array('source'=>$this->$name->target, 'operator'=>$operator, 'target'=>$exp));
 	}
 	public function __set($var, $val) {
 		if (array_key_exists($var, $this->sqlExpressions)) $this->sqlExpressions[$var] = $val;
