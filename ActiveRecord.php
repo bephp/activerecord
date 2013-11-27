@@ -1,6 +1,6 @@
 <?php
 class Base {
-	protected $data = array();
+	public $data = array();
 	public function __construct($config = array()) {
 		foreach($config as $key => $val) $this->$key = $val;
 	}
@@ -46,19 +46,21 @@ abstract class ActiveRecord extends Base {
 		'top' => 'TOP',
 	);
 	public static $defaultSqlExpressions = array('expressions' => array(), 'wrap' => false,
-		'select'=>null, 'insert'=>'INSERT INTO', 'update'=>null, 'set' => null, 'delete'=>'DELETE ', 
-		'from'=>null, 'values' => null, 'where'=>null, 'limit'=>null, 'order'=>null, 'group' => null, 
-		'params' => array());
+		'select'=>null, 'insert'=>null, 'update'=>null, 'set' => null, 'delete'=>'DELETE ', 
+		'from'=>null, 'values' => null, 'where'=>null, 'limit'=>null, 'order'=>null, 'group' => null);
 	protected $sqlExpressions = array();
 	
 	public $table;
 	public $primaryKey = 'id';
 	public $dirty = array();
+	public $params = array();
+	public static $count = 0;
+	const PREFIX = ':ph';
 
 	public function __construct($config = array()) {
 		parent::__construct($config);
 	}
-	public function reset() {$this->sqlExpressions = array();return $this;}
+	public function reset() {$this->params = array();$this->sqlExpressions = array();return $this;}
 	public function dirty($dirty = array()){$this->data = array_merge($this->data, $this->dirty = $dirty);return $this;}
 	public static function setDb($db) {
 		self::$db = $db;
@@ -69,10 +71,10 @@ abstract class ActiveRecord extends Base {
 		return false;
 	}
 	public function findAll() {
-		return self::queryAll($this->_buildSql(array('select', 'from', 'where', 'group', 'order', 'limit')), $this->param, $this->reset());
+		return self::queryAll($this->_buildSql(array('select', 'from', 'where', 'group', 'order', 'limit')), $this->params, $this->reset());
 	}
 	public function delete() {
-		return self::execute($this->eq($this->primaryKey, $this->{$this->primaryKey})->_buildSql(array('delete', 'from', 'where')), $this->param, $this->reset());
+		return self::execute($this->eq($this->primaryKey, $this->{$this->primaryKey})->_buildSql(array('delete', 'from', 'where')), $this->params, $this->reset());
 	}
 	public function update() {
 		foreach($this->dirty as $field => $value) $this->addCondition($field, '=', $value, '' , 'set');
@@ -81,7 +83,15 @@ abstract class ActiveRecord extends Base {
 		return false;
 	}
 	public function insert() {
-		
+		$value = $this->_filterParam($this->dirty);
+		$this->insert = new Expressions(array('operator'=> 'INSERT INTO '. $this->table, 
+			'target' => new WrapExpressions(array('target' => array_keys($this->dirty)))));
+		$this->values = new Expressions(array('operator'=> 'VALUES', 'target' => new WrapExpressions(array('target' => $value))));
+		if (self::execute($this->_buildSql(array('insert', 'values')), $this->params)) {
+			$this->id = self::$db->lastInsertId();
+			return $this->dirty()->reset();
+		}
+		return false;
 	}
 	public static function execute($sql, $param = array()) {
 		return (($sth = self::$db->prepare($sql)) && $sth->execute($param));
@@ -131,14 +141,17 @@ abstract class ActiveRecord extends Base {
 		} else $this->wrap = true;
 		return $this;
 	}
-	protected function addCondition($field, $operator, $value, $op = 'AND', $name = 'where') {
-		static $count = 0, $prefix = ':ph';
-		if (!is_array($this->params) || count($this->params) == 0) $this->params = array();
-		if (is_array($value)) foreach((array)$value as $key => $val) $this->params[$value[$key] = $prefix. ++$count] = $val;
+
+	protected function _filterParam(&$value) {
+		if (is_array($value)) foreach((array)$value as $key => $val) $this->params[$value[$key] = self::PREFIX. ++self::$count] = $val;
 		else {
-			$this->params[$ph = $prefix. ++$count] = $value;
+			$this->params[$ph = self::PREFIX. ++self::$count] = $value;
 			$value = $ph;
 		}
+		return $value;
+	}
+	protected function addCondition($field, $operator, $value, $op = 'AND', $name = 'where') {
+		$value = $this->_filterParam($value);
 		if ($exp =  new Expressions(array('source'=>('where' == $name? $this->table.'.' : '' ) .$field, 'operator'=>$operator, 'target'=>(is_array($value) ? 
 			new WrapExpressions(array('target' => $value)) : $value)))) {
 			if (!$this->wrap)
@@ -164,8 +177,13 @@ abstract class ActiveRecord extends Base {
 		elseif (array_key_exists($var, self::$defaultSqlExpressions)) $this->sqlExpressions[$var] = $val;
 		else $this->dirty[$var] = $this->data[$var] = $val;
 	}
+	public function __unset($var) { 
+		if (array_key_exists($var, $this->sqlExpressions)) unset($this->sqlExpressions[$var]);
+		if(isset($this->data[$var])) unset($this->data[$var]);
+		if(isset($this->dirty[$var])) unset($this->dirty[$var]);
+	}
 	public function & __get($var) {
-		if (array_key_exists($var, $this->sqlExpressions)) return $this->sqlExpressions[$var];
+		if (array_key_exists($var, $this->sqlExpressions)) return  $this->sqlExpressions[$var];
 		else //if(isset($this->data[$var])) { $var = $this->data[$var]; return $var;}
 		{$r = parent::__get($var); return $r;}
 	}
