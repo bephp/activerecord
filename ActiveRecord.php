@@ -73,9 +73,9 @@ abstract class ActiveRecord extends Base {
 		return self::exec($this->eq('id', $this->id)->_buildSql(array('delete', 'from', 'where')));
 	}
 	public function update() {
-		if(!$this->set) $this->set = new 
-		foreach($this->dirty) 
-		var_dump($this->dirty);
+		//if(!$this->set) $this->set = new 
+		foreach($this->dirty as $field => $value) $this->addCondition($field, '=', $value, '' , 'set');
+		var_dump($this->set);
 	}
 	public static function exec($sql) {
 		return self::$db->exec($sql);
@@ -123,11 +123,11 @@ abstract class ActiveRecord extends Base {
 		} else $this->wrap = true;
 		return $this;
 	}
-	protected function addCondition($field, $operator, $value, $op = 'AND') {
-		if ($exp =  new Expressions(array('source'=>$this->table.'.'.$field, 'operator'=>$operator, 'target'=>(is_array($value) ? 
+	protected function addCondition($field, $operator, $value, $op = 'AND', $name = 'where') {
+		if ($exp =  new Expressions(array('source'=>('where' == $name? $this->table.'.' : '' ) .$field, 'operator'=>$operator, 'target'=>(is_array($value) ? 
 			new WrapExpressions(array('target' => $value)) : $value)))) {
 			if (!$this->wrap)
-				$this->_addCondition($exp, $op);
+				$this->_addCondition($exp, $op, $name);
 			else
 				$this->_addExpression($exp, $op);
 		}
@@ -138,11 +138,11 @@ abstract class ActiveRecord extends Base {
 		else 
 			$this->expressions[] = new Expressions(array('operator'=>$operator, 'target'=>$exp));
 	}
-	protected function _addCondition($exp, $operator) {
-		if (!$this->where) 
-			$this->where = new Expressions(array('operator'=>'WHERE', 'target'=>$exp));
+	protected function _addCondition($exp, $operator, $name ='where' ) {
+		if (!$this->$name) 
+			$this->$name = new Expressions(array('operator'=>strtoupper($name) , 'target'=>$exp));
 		else 
-			$this->where->target = new Expressions(array('source'=>$this->where->target, 'operator'=>$operator, 'target'=>$exp));	
+			$this->$name->target = new Expressions(array('source'=>$this->$name->target, 'operator'=>$operator, 'target'=>$exp));	
 	}
 	public function __set($var, $val) {
 		if (array_key_exists($var, $this->sqlExpressions)) $this->sqlExpressions[$var] = $val;
