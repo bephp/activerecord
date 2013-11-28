@@ -1,9 +1,9 @@
 #activerecord  
-simple activerecord in PHP
 ============
+simple activerecord in PHP  
+
 ##API Reference
 [API Reference](http://lloydzhou.github.io/activerecord/)
-====
 
 ## Demo
 ### Include base class ActiveRecord
