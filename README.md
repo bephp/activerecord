@@ -9,11 +9,11 @@ API Reference
 
 Demo
 ===
-* Include base class ActiveRecord  
+## Include base class ActiveRecord
 ```js
 include "ActiveRecord.php";
 ```
-* Define Class  
+## Define Class
 ```js
 class User extends ActiveRecord{
 	public $table = 'user';
