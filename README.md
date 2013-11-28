@@ -1,20 +1,17 @@
-activerecord
-============
-
+#activerecord  
 simple activerecord in PHP
-
-API Reference
-====
+============
+##API Reference
 [API Reference](http://lloydzhou.github.io/activerecord/)
+====
 
-Demo
-===
-## Include base class ActiveRecord
-```js
+## Demo
+### Include base class ActiveRecord
+```php
 include "ActiveRecord.php";
 ```
-## Define Class
-```js
+### Define Class
+```php
 class User extends ActiveRecord{
 	public $table = 'user';
 	public $primaryKey = 'id';
@@ -31,8 +28,8 @@ class Contact extends ActiveRecord{
 	);
 }
 ```
-* Init data
-```js
+### Init data
+```php
 ActiveRecord::setDb(new PDO('sqlite:test.db'));
 ActiveRecord::execute("CREATE TABLE IF NOT EXISTS user (
                                 id INTEGER PRIMARY KEY, 
@@ -46,14 +43,14 @@ ActiveRecord::execute("CREATE TABLE IF NOT EXISTS contact (
                                 address TEXT
                         );");
 ```
-* Insert one User into database.
+### Insert one User into database.
 ```php
 $user = new User();
 $user->name = 'demo';
 $user->password = md5('demo');
 var_dump($user->insert());
 ```
-* Insert one Contact belongs the current user.
+### Insert one Contact belongs the current user.
 ```php
 $contact = new Contact();
 $contact->address = 'test';
@@ -61,7 +58,7 @@ $contact->email = 'test1234456@domain.com';
 $contact->user_id = $user->id;
 var_dump($contact->insert());
 ```
-* Example to using relations 
+### Example to using relations 
 ```php
 $user = new User();
 // find one user
