@@ -1,4 +1,4 @@
-#activerecord  
+# activerecord  
 ============
 simple activerecord in PHP  
 
@@ -17,7 +17,7 @@ class User extends ActiveRecord{
 	public $primaryKey = 'id';
 	public $relations = array(
 		'contacts' => array(self::HAS_MANY, 'Contact', 'user_id'),
-		'contact' => array(self::HAS_ONE, 'Contact', 'user_id', 'where' => '1', 'order' => 'id desc'),
+		'contact' => array(self::HAS_ONE, 'Contact', 'user_id'),
 	);
 }
 class Contact extends ActiveRecord{
