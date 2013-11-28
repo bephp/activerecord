@@ -16,14 +16,14 @@ class Contact extends ActiveRecord{
 	);
 }
 
-Contact::setDb(new PDO('sqlite:test.db'));
+ActiveRecord::setDb(new PDO('sqlite:test.db'));
 
-Contact::execute("CREATE TABLE IF NOT EXISTS user (
+ActiveRecord::execute("CREATE TABLE IF NOT EXISTS user (
 				id INTEGER PRIMARY KEY, 
 				name TEXT, 
 				password TEXT 
 			);");
-Contact::execute("CREATE TABLE IF NOT EXISTS contact (
+ActiveRecord::execute("CREATE TABLE IF NOT EXISTS contact (
 				id INTEGER PRIMARY KEY, 
 				user_id INTEGER, 
 				email TEXT,
