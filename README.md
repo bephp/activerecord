@@ -10,11 +10,11 @@ API Reference
 Demo
 ===
 * Include base class ActiveRecord  
-```
+```js
 include "ActiveRecord.php";
 ```
 * Define Class  
-<pre><code>
+```js
 class User extends ActiveRecord{
 	public $table = 'user';
 	public $primaryKey = 'id';
@@ -30,9 +30,9 @@ class Contact extends ActiveRecord{
 		'user' => array(self::BELONGS_TO, 'User', 'user_id'),
 	);
 }
-</code></pre>
-* Init data
 ```
+* Init data
+```js
 ActiveRecord::setDb(new PDO('sqlite:test.db'));
 ActiveRecord::execute("CREATE TABLE IF NOT EXISTS user (
                                 id INTEGER PRIMARY KEY, 
