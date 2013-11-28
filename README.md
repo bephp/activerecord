@@ -15,14 +15,14 @@ include "ActiveRecord.php";
 ```
 * Define Class
 ```
-class User extends ActiveRecord{
-	public $table = 'user';
-	public $primaryKey = 'id';
-	public $relations = array(
-		'contacts' => array(self::HAS_MANY, 'Contact', 'user_id'),
-		'contact' => array(self::HAS_ONE, 'Contact', 'user_id', 'where' => '1', 'order' => 'id desc'),
-	);
-}
+class User extends ActiveRecord{  
+	public $table = 'user';  
+	public $primaryKey = 'id';  
+	public $relations = array(  
+		'contacts' => array(self::HAS_MANY, 'Contact', 'user_id'),  
+		'contact' => array(self::HAS_ONE, 'Contact', 'user_id', 'where' => '1', 'order' => 'id desc'),  
+	);  
+}  
 class Contact extends ActiveRecord{
 	public $table = 'contact';
 	public $primaryKey = 'id';
