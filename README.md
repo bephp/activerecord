@@ -9,12 +9,13 @@ API Reference
 
 Demo
 ===
-* Include base class ActiveRecord
+* Include base class ActiveRecord  
 ```php
 include "ActiveRecord.php";
 ```
 * Define Class
 ```php
+<pre>
 class User extends ActiveRecord{
 	public $table = 'user';
 	public $primaryKey = 'id';
@@ -30,6 +31,7 @@ class Contact extends ActiveRecord{
 		'user' => array(self::BELONGS_TO, 'User', 'user_id'),
 	);
 }
+</pre>
 ```
 * Init data
 ```php
@@ -61,7 +63,7 @@ $contact->email = 'test1234456@domain.com';
 $contact->user_id = $user->id;
 var_dump($contact->insert());
 ```
-* Example to using relations
+* Example to using relations 
 ```php
 $user = new User();
 // find one user
