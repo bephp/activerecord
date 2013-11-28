@@ -1,35 +1,57 @@
 <?php 
 include "ActiveRecord.php";
+class User extends ActiveRecord{
+	public $table = 'user';
+	public $primaryKey = 'id';
+	public $relations = array(
+		'contacts' => array(self::HAS_MANY, 'Contact', 'user_id'),
+		'contact' => array(self::HAS_ONE, 'Contact', 'user_id', 'where' => '1', 'order' => 'id desc'),
+	);
+}
 class Contact extends ActiveRecord{
 	public $table = 'contact';
 	public $primaryKey = 'id';
+	public $relations = array(
+		'user' => array(self::BELONGS_TO, 'User', 'user_id'),
+	);
 }
+
 Contact::setDb(new PDO('sqlite:test.db'));
-/*
-Contact::execute("CREATE TABLE IF NOT EXISTS contact (
+
+Contact::execute("CREATE TABLE IF NOT EXISTS user (
 				id INTEGER PRIMARY KEY, 
 				name TEXT, 
-				email TEXT 
+				password TEXT 
 			);");
-Contact::execute("INSERT INTO contact (name, email) VALUES ('testname1', 'testemail1@domain.com')");
-Contact::execute("INSERT INTO contact (name, email) VALUES ('testname2', 'testemail2@domain.com')");
-Contact::execute("INSERT INTO contact (name, email) VALUES ('testname3', 'testemail3@domain.com')");
-*/
-$contact = new Contact();
-$contact->name = 'test1234456';
-$contact->email = 'test1234456@domain.com';
-var_dump($contact->insert());
-$contact->name = 'test123';
-var_dump($contact->update());
+Contact::execute("CREATE TABLE IF NOT EXISTS contact (
+				id INTEGER PRIMARY KEY, 
+				user_id INTEGER, 
+				email TEXT,
+				address TEXT
+			);");
 /*
-var_dump($contact->limit(1,2)->findAll());  // many Contact object in an array.
-//var_dump($contact);				// one Contact with no data.
-var_dump($contact->select('name,email')->gt('id', 4)->find());	// one Contact from database by id = 1.
+$user = new User();
+$user->name = 'demo';
+$user->password = md5('demo');
+var_dump($user->insert());
 
-//$contact->reset();				// reset the sql. no need to call this function auto call it when exec sql.
-//var_dump($contact->notin('id', array(1,2,3,4,5,6))->isnotnull('id')->order('id desc', 'name asc')->find());
-// build sql: SELECT * FROM contact  WHERE id NOT IN (1,2,3,4,5,6) AND id IS NOT NULL     ORDER BY id desc, name asc   limit 1 
-//var_dump($contact->delete());
-// DELETE   FROM contact  WHERE id NOT IN (1,2,3,4,5,6) AND id IS NOT NULL  AND id = 66
-
+$contact = new Contact();
+$contact->address = 'test';
+$contact->email = 'test1234456@domain.com';
+$contact->user_id = $user->id;
+var_dump($contact->insert());
 */
+/*
+$contact = new Contact();
+$contact->address = 'test';
+$contact->email = 'test1234456@domain.com';
+$contact->user_id = 2;
+var_dump($contact->insert());
+*/
+$user = new User();
+var_dump($user->notnull('id')->orderby('id desc')->find());
+echo "\nContact of User # {$user->id}\n";
+var_dump($user->contacts);
+$contact = new Contact();
+var_dump($contact->find());
+var_dump($contact->users);

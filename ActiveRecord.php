@@ -1,4 +1,5 @@
 <?php
+
 class Base {
 	public $data = array();
 	public function __construct($config = array()) {
@@ -44,6 +45,7 @@ abstract class ActiveRecord extends Base {
 		'order' => 'ORDER BY','orderby' => 'ORDER BY',
 		'limit' => 'limit',
 		'top' => 'TOP',
+		'where' => 'WHERE',
 	);
 	public static $defaultSqlExpressions = array('expressions' => array(), 'wrap' => false,
 		'select'=>null, 'insert'=>null, 'update'=>null, 'set' => null, 'delete'=>'DELETE ', 
@@ -54,6 +56,10 @@ abstract class ActiveRecord extends Base {
 	public $primaryKey = 'id';
 	public $dirty = array();
 	public $params = array();
+	const BELONGS_TO = 'belongs_to';
+	const HAS_MANY = 'has_many';
+	const HAS_ONE = 'has_one';
+	public $relations = array();
 	public static $count = 0;
 	const PREFIX = ':ph';
 
@@ -67,7 +73,7 @@ abstract class ActiveRecord extends Base {
 	}
 	public function find($id = null) {
 		if ($id) $this->eq($this->primaryKey, $id);
-		if(self::query($this->limit(1)->_buildSql(array('select', 'from', 'where', 'group', 'order', 'limit')), $this->params, $this->reset())) return $this;
+		if(self::query($this->limit(1)->_buildSql(array('select', 'from', 'where', 'group', 'order', 'limit')), $this->params, $this->reset())) 	return $this;
 		return false;
 	}
 	public function findAll() {
@@ -97,9 +103,9 @@ abstract class ActiveRecord extends Base {
 		return (($sth = self::$db->prepare($sql)) && $sth->execute($param));
 	}
 	public static function query($sql, $param = array(), $obj = null) {
-		return self::_query(function ($sth, $obj){ $sth->fetch( PDO::FETCH_INTO ); return $obj->dirty();}, $sql, $param, $obj);
+		return self::callbackQuery(function ($sth, $obj){ $sth->fetch( PDO::FETCH_INTO ); return $obj->dirty();}, $sql, $param, $obj);
 	}
-	protected static function _query($cb, $sql, $param = array(), $obj = null) {
+	public static function callbackQuery($cb, $sql, $param = array(), $obj = null) {
 		if ($sth = self::$db->prepare($sql)) {
 			$sth->setFetchMode( PDO::FETCH_INTO , ($obj ? : new get_called_class()));
 			$sth->execute($param);
@@ -108,11 +114,21 @@ abstract class ActiveRecord extends Base {
 		return false;
 	}
 	public static function queryAll($sql, $param = array(), $obj = null) {
-		return self::_query(function ($sth, $obj){ 
+		return self::callbackQuery(function ($sth, $obj){ 
 			$result = array();
 			while ($obj = $sth->fetch( PDO::FETCH_INTO )) $result[] = clone $obj->dirty();
 			return $result;
 		}, $sql, $param, $obj);
+	}
+	public function & getRelation($name) {
+		if ((!$this->relations[$name] instanceof self) && self::HAS_ONE == $this->relations[$name][0])
+			$this->relations[$name] = (new $this->relations[$name][1])->eq($this->relations[$name][2], $this->{$this->primaryKey})->find();
+		elseif (is_array($this->relations[$name]) && self::HAS_MANY == $this->relations[$name][0])
+			$this->relations[$name] = (new $this->relations[$name][1])->eq($this->relations[$name][2], $this->{$this->primaryKey})->findAll();
+		elseif ((!$this->relations[$name] instanceof self) && self::BELONGS_TO == $this->relations[$name][0])
+			$this->relations[$name] = (new $this->relations[$name][1])->find($this->{$this->relations[$name][2]});
+		else throw new Exception("Relation $name not found.");
+		return $this->relations[$name];
 	}
 	public function _buildSql($sqls = array()) {
 		array_walk($sqls, function (&$n, $i, $o){
@@ -130,6 +146,7 @@ abstract class ActiveRecord extends Base {
 			$this->addCondition($args[0], self::$operators[$name], isset($args[1]) ? $args[1] : null, (is_string(end($args)) && 'or' === strtolower(end($args))) ? 'OR' : 'AND');
 		else if (in_array($name= str_replace('by', '', $name), array_keys(self::$sqlParts)))
 			$this->$name = new Expressions(array('operator'=>self::$sqlParts[$name], 'target' => implode(', ', $args)));
+		else throw new Exception("Method $name not exist.");
 		return $this;
 	}
 	public function wrap($op = null) {
@@ -142,16 +159,16 @@ abstract class ActiveRecord extends Base {
 		return $this;
 	}
 
-	protected function _filterParam(&$value) {
-		if (is_array($value)) foreach((array)$value as $key => $val) $this->params[$value[$key] = self::PREFIX. ++self::$count] = $val;
-		else {
+	protected function _filterParam($value) {
+		if (is_array($value)) foreach($value as $key => $val) $this->params[$value[$key] = self::PREFIX. ++self::$count] = $val;
+		else if ($value){
 			$this->params[$ph = self::PREFIX. ++self::$count] = $value;
 			$value = $ph;
 		}
 		return $value;
 	}
 	protected function addCondition($field, $operator, $value, $op = 'AND', $name = 'where') {
-		$value = $this->_filterParam($value);
+		$value = ($value) ? $this->_filterParam($value) : $value;
 		if ($exp =  new Expressions(array('source'=>('where' == $name? $this->table.'.' : '' ) .$field, 'operator'=>$operator, 'target'=>(is_array($value) ? 
 			new WrapExpressions(array('target' => $value)) : $value)))) {
 			if (!$this->wrap)
@@ -184,7 +201,7 @@ abstract class ActiveRecord extends Base {
 	}
 	public function & __get($var) {
 		if (array_key_exists($var, $this->sqlExpressions)) return  $this->sqlExpressions[$var];
-		else //if(isset($this->data[$var])) { $var = $this->data[$var]; return $var;}
-		{$r = parent::__get($var); return $r;}
+		else if (array_key_exists($var, $this->relations)) return $this->getRelation($var);
+		else { $r = parent::__get($var); return $r; }
 	}
 }
