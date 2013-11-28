@@ -14,16 +14,15 @@ Demo
 include "ActiveRecord.php";
 ```
 * Define Class  
-<pre>
-```
-class User extends ActiveRecord{  
-	public $table = 'user';  
-	public $primaryKey = 'id';  
-	public $relations = array(  
-		'contacts' => array(self::HAS_MANY, 'Contact', 'user_id'),  
-		'contact' => array(self::HAS_ONE, 'Contact', 'user_id', 'where' => '1', 'order' => 'id desc'),  
-	);  
-}  
+<pre><code>
+class User extends ActiveRecord{
+	public $table = 'user';
+	public $primaryKey = 'id';
+	public $relations = array(
+		'contacts' => array(self::HAS_MANY, 'Contact', 'user_id'),
+		'contact' => array(self::HAS_ONE, 'Contact', 'user_id', 'where' => '1', 'order' => 'id desc'),
+	);
+}
 class Contact extends ActiveRecord{
 	public $table = 'contact';
 	public $primaryKey = 'id';
@@ -31,9 +30,7 @@ class Contact extends ActiveRecord{
 		'user' => array(self::BELONGS_TO, 'User', 'user_id'),
 	);
 }
-
-```
-</pre>
+</code></pre>
 * Init data
 ```
 ActiveRecord::setDb(new PDO('sqlite:test.db'));
