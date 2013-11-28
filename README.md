@@ -10,12 +10,11 @@ API Reference
 Demo
 ===
 * Include base class ActiveRecord  
-```php
+```
 include "ActiveRecord.php";
 ```
 * Define Class
-```php
-<pre>
+```
 class User extends ActiveRecord{
 	public $table = 'user';
 	public $primaryKey = 'id';
@@ -34,7 +33,7 @@ class Contact extends ActiveRecord{
 </pre>
 ```
 * Init data
-```php
+```
 ActiveRecord::setDb(new PDO('sqlite:test.db'));
 ActiveRecord::execute("CREATE TABLE IF NOT EXISTS user (
                                 id INTEGER PRIMARY KEY, 
