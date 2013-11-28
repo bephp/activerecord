@@ -1,74 +1,26 @@
 <?php
-/*
+/**
  * Created on Nov 26, 2013
- * Simple implement of active record in PHP.
- * Using magic function to implement more smarty functions.
- * Can using chain method calls, to build concise and compactness program.
  * @author Lloyd Zhou
  * @email lloydzhou@qq.com
  */
-?>
-<?php
 /**
- * base function, to stord attributes in one array.
- */
-class Base {
-	public $data = array();
-	public function __construct($config = array()) {
-		foreach($config as $key => $val) $this->$key = $val;
-	}
-	public function __set($var, $val) {
-		$this->data[$var] = $val;
-	}
-	public function & __get($var) {
-        $result = isset($this->data[$var]) ? $this->data[$var] : null;
-		return $result;
-	}
-}
-/**
- * Class Expressions, part of SQL.
- * Every SQL can be split into multiple expressions.
- * Each expression contains three parts: 
- * @property string|Expressions $source of this expression, (option)
- * @property string $operator (required)
- * @property string|Expressions $target of this expression (required)
- * Just implement one function __toString.
- */
-class Expressions extends Base {
-	public function __toString() {
-		return $this->source. ' '. $this->operator. ' '. $this->target;
-	}
-}
-/**
- * Class WrapExpressions 
- */
-class WrapExpressions extends Expressions {
-	public function __toString() {
-		return ($this->start ? : '('). implode(($this->delimiter ? : ','), $this->target). ($this->end?:')');
-	}
-}
-/**
- * @abstract base class of ActiveRecords.
- * @property PDO $db static property.
- * @property array $operators maping the function name and the operator, to build Expressions in WHERE condition.
- * user can call it like this: 
- *      $user->isnotnull()->eq('id', 1); 
- * will create Expressions can explain to SQL: 
- *      WHERE user.id IS NOT NULL AND user.id = :ph1
- * @property array $sqlPart Part of SQL, maping the function name and the operator to build SQL Part.
- * call function like this: 
- *      $user->order('id desc', 'name asc')->limit(2,1);
- *  can explain to SQL:
- *      ORDER BY id desc, name asc limit 2,1
- * @property array $sqlExpressions stored the Expressions of the SQL. 
- * @property string $table The table name in database.
- * @property string $primaryKey  The primary key of this ActiveRecord, just suport single primary key.
- * @property array $drity Stored the drity data of this object, when call "insert" or "update" function, will write this data into database. 
- * @property array $params Stored the params will bind to SQL when call PDOStatement::execute(), 
- * @property int $count The count of bind params, using this count and const "PREFIX" (:ph) to generate place holder in SQL. 
+ * Simple implement of active record in PHP.<br />
+ * Using magic function to implement more smarty functions.<br />
+ * Can using chain method calls, to build concise and compactness program.<br />
  */
 abstract class ActiveRecord extends Base {
+    /**
+     * @var PDO static property to connect database.
+     */
 	public static $db;
+    /**
+     * @var array maping the function name and the operator, to build Expressions in WHERE condition.
+     * <pre>user can call it like this: 
+     *      $user->isnotnull()->eq('id', 1); 
+     * will create Expressions can explain to SQL: 
+     *      WHERE user.id IS NOT NULL AND user.id = :ph1</pre>
+     */
 	public static $operators = array(
 		'equal' => '=', 'eq' => '=',
 		'notequal' => '<>', 'ne' => '<>',
@@ -83,6 +35,13 @@ abstract class ActiveRecord extends Base {
 		'isnull' => 'IS NULL',
 		'isnotnull' => 'IS NOT NULL', 'notnull' => 'IS NOT NULL', 
 	);
+    /**
+     * @var array Part of SQL, maping the function name and the operator to build SQL Part.
+     * <pre>call function like this: 
+     *      $user->order('id desc', 'name asc')->limit(2,1);
+     *  can explain to SQL:
+     *      ORDER BY id desc, name asc limit 2,1</pre>
+     */
 	public static $sqlParts = array(
 		'select' => 'SELECT',
 		'from' => 'FROM',
@@ -92,19 +51,42 @@ abstract class ActiveRecord extends Base {
 		'top' => 'TOP',
 		'where' => 'WHERE',
 	);
+    /**
+     * @var array Static property to stored the default Sql Expressions values.
+     */
 	public static $defaultSqlExpressions = array('expressions' => array(), 'wrap' => false,
 		'select'=>null, 'insert'=>null, 'update'=>null, 'set' => null, 'delete'=>'DELETE ', 
 		'from'=>null, 'values' => null, 'where'=>null, 'limit'=>null, 'order'=>null, 'group' => null);
+    /**
+     * @var array Stored the Expressions of the SQL. 
+     */
 	protected $sqlExpressions = array();
-	
+	/**
+     * @var string  The table name in database.
+	 */
 	public $table;
+    /**
+     * @var string  The primary key of this ActiveRecord, just suport single primary key.
+     */
 	public $primaryKey = 'id';
+    /**
+     * @var array Stored the drity data of this object, when call "insert" or "update" function, will write this data into database. 
+     */
 	public $dirty = array();
+    /**
+     * @var array Stored the params will bind to SQL when call PDOStatement::execute(), 
+     */
 	public $params = array();
 	const BELONGS_TO = 'belongs_to';
 	const HAS_MANY = 'has_many';
 	const HAS_ONE = 'has_one';
+    /**
+     * @var array Stored the configure of the relation, or target of the relation.
+     */
 	public $relations = array();
+    /**
+     * @var int The count of bind params, using this count and const "PREFIX" (:ph) to generate place holder in SQL. 
+     */
 	public static $count = 0;
 	const PREFIX = ':ph';
 
@@ -119,6 +101,7 @@ abstract class ActiveRecord extends Base {
     }
     /**
      * function to SET or RESET the dirty data.
+     * @param array $dirty The dirty data will be set, or empty array to reset the dirty data. 
      * @return ActiveRecord return $this, can using chain method calls.
      */
 	public function dirty($dirty = array()){
@@ -135,7 +118,7 @@ abstract class ActiveRecord extends Base {
     /**
      * function to find one record and assign in to current object.
      * @param int $id If call this function using this param, will find record by using this id. If not set, just find the first record in database.
-     * @return bool | ActiveRecord if find record, assign in to current object and return it, other wise return "false".
+     * @return bool|ActiveRecord if find record, assign in to current object and return it, other wise return "false".
      */
 	public function find($id = null) {
 		if ($id) $this->eq($this->primaryKey, $id);
@@ -159,7 +142,7 @@ abstract class ActiveRecord extends Base {
 	}
     /**
      * function to build update SQL, and update current record in database, just write the dirty data into database.
-     * @return bool | ActiveRecord if update success return current object, other wise return false.
+     * @return bool|ActiveRecord if update success return current object, other wise return false.
      */
 	public function update() {
         if (count($this->dirty) == 0) return true;
@@ -170,7 +153,7 @@ abstract class ActiveRecord extends Base {
 	}
     /**
      * function to build insert SQL, and insert current record into database.
-     * @return bool | ActiveRecord if insert success return current object, other wise return false.
+     * @return bool|ActiveRecord if insert success return current object, other wise return false.
      */
 	public function insert() {
         if (count($this->dirty) == 0) return true;
@@ -186,19 +169,29 @@ abstract class ActiveRecord extends Base {
 	}
     /**
      * helper function to exec sql.
+     * @param string $sql The SQL need to be execute.
+     * @param array $param The param will be bind to PDOStatement.
+     * @return bool 
      */
 	public static function execute($sql, $param = array()) {
 		return (($sth = self::$db->prepare($sql)) && $sth->execute($param));
 	}
     /**
      * helper function to query one record by sql and params.
-     * @return bool | ActiveRecord 
+     * @param string $sql The SQL to find record.
+     * @param array $param The param will be bind to PDOStatement.
+     * @param ActiveRecord $obj The object, if find record in database, will assign the attributes in to this object.
+     * @return bool|ActiveRecord 
      */
 	public static function query($sql, $param = array(), $obj = null) {
 		return self::callbackQuery(function ($sth, $obj){ $sth->fetch( PDO::FETCH_INTO ); return $obj->dirty();}, $sql, $param, $obj);
 	}
     /**
      * helper function to execute sql with callback, can using this call back to fetch data.
+     * @param callable $cb Callback function will call after find records in database.
+     * @param string $sql The SQL to find record.
+     * @param array $param The param will be bind to PDOStatement.
+     * @param ActiveRecord $obj The object, if find record in database, will assign the attributes in to this object.
      * @return mixed if success to exec SQL, return the return value of callback, other wise return false.
      */
 	public static function callbackQuery($cb, $sql, $param = array(), $obj = null) {
@@ -211,6 +204,9 @@ abstract class ActiveRecord extends Base {
 	}
     /**
      * helper function to find all records by SQL.
+     * @param string $sql The SQL to find record.
+     * @param array $param The param will be bind to PDOStatement.
+     * @return mixed if success to exec SQL, return array of ActiveRecord object, other wise return false.
      */
 	public static function queryAll($sql, $param = array(), $obj = null) {
 		return self::callbackQuery(function ($sth, $obj){ 
@@ -222,6 +218,7 @@ abstract class ActiveRecord extends Base {
     /**
      * helper function to get relation of this object.
      * There was three types of relations: {BELONGS_TO, HAS_ONE, HAS_MANY}
+     * @param string $name The name of the relation, the array key when defind the relation.
      * @return mixed 
      */
 	protected function & getRelation($name) {
@@ -236,6 +233,7 @@ abstract class ActiveRecord extends Base {
 	}
     /**
      * helper function to build SQL with sql parts.
+     * @param array $sqls The SQL part will be build.
      * @return string 
      */
 	public function _buildSql($sqls = array()) {
@@ -251,6 +249,8 @@ abstract class ActiveRecord extends Base {
     /**
      * magic function to make calls witch in function mapping stored in $operators and $sqlPart.
      * also can call function of PDO object.
+     * @param string $name function name
+     * @param array $args The arguments of the function.
      * @return mixed Return the result of callback or the current object to make chain method calls.
      */
 	public function __call($name, $args) {
@@ -265,6 +265,8 @@ abstract class ActiveRecord extends Base {
 	}
     /**
      * make wrap when build the SQL expressions of WHWRE.
+     * @param string $op If give this param will build one WrapExpressions include the stored expressions add into WHWRE. otherwise wil stored the expressions into array.
+     * @return ActiveRecord return $this, can using chain method calls.
      */
 	public function wrap($op = null) {
 		if (1 === func_num_args()){
@@ -289,6 +291,11 @@ abstract class ActiveRecord extends Base {
     /**
      * helper function to add condition into WHERE. 
      * create the SQL Expressions.
+     * @param string $field The field name, the source of Expressions
+     * @param string $operator 
+     * @param mixed $value the target of the Expressions
+     * @param string $op the operator to concat this Expressions into WHERE or SET statment.
+     * @param string $name The Expression will contact to.
      */
 	public function addCondition($field, $operator, $value, $op = 'AND', $name = 'where') {
 		$value = $this->_filterParam($value);
@@ -301,7 +308,9 @@ abstract class ActiveRecord extends Base {
 		}
 	}
     /**
-     * helper function to make wrapper. 
+     * helper function to make wrapper. Stored the expression in to array.
+     * @param Expressions $exp The expression will be stored.
+     * @param string $operator The operator to concat this Expressions into WHERE statment.
      */
 	protected function _addExpression($exp, $operator) {
 		if (!is_array($this->expressions) || count($this->expressions) == 0) 
@@ -311,6 +320,9 @@ abstract class ActiveRecord extends Base {
 	}
     /**
      * helper function to add condition into WHERE. 
+     * @param Expressions $exp The expression will be concat into WHERE or SET statment.
+     * @param string $operator the operator to concat this Expressions into WHERE or SET statment.
+     * @param string $name The Expression will contact to.
      */
 	protected function _addCondition($exp, $operator, $name ='where' ) {
 		if (!$this->$name) 
@@ -341,4 +353,45 @@ abstract class ActiveRecord extends Base {
 		else if (array_key_exists($var, $this->relations)) return $this->getRelation($var);
 		else return  parent::__get($var);
 	}
+}
+/**
+ * base class to stord attributes in one array.
+ */
+abstract class Base {
+    /**
+     * @var array Stored the attributes of the current object
+     */
+    public $data = array();
+    public function __construct($config = array()) {
+        foreach($config as $key => $val) $this->$key = $val;
+    }
+    public function __set($var, $val) {
+        $this->data[$var] = $val;
+    }
+    public function & __get($var) {
+        $result = isset($this->data[$var]) ? $this->data[$var] : null;
+        return $result;
+    }
+}
+/**
+ * Class Expressions, part of SQL.
+ * Every SQL can be split into multiple expressions.
+ * Each expression contains three parts: 
+ * @property string|Expressions $source of this expression, (option)
+ * @property string $operator (required)
+ * @property string|Expressions $target of this expression (required)
+ * Just implement one function __toString.
+ */
+class Expressions extends Base {
+    public function __toString() {
+        return $this->source. ' '. $this->operator. ' '. $this->target;
+    }
+}
+/**
+ * Class WrapExpressions 
+ */
+class WrapExpressions extends Expressions {
+    public function __toString() {
+        return ($this->start ? : '('). implode(($this->delimiter ? : ','), $this->target). ($this->end?:')');
+    }
 }
