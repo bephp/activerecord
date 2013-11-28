@@ -13,7 +13,8 @@ Demo
 ```
 include "ActiveRecord.php";
 ```
-* Define Class
+* Define Class  
+<pre>
 ```
 class User extends ActiveRecord{  
 	public $table = 'user';  
@@ -30,8 +31,9 @@ class Contact extends ActiveRecord{
 		'user' => array(self::BELONGS_TO, 'User', 'user_id'),
 	);
 }
-</pre>
+
 ```
+</pre>
 * Init data
 ```
 ActiveRecord::setDb(new PDO('sqlite:test.db'));
