@@ -1,5 +1,6 @@
 <?php 
-include "ActiveRecord.php";
+//include "ActiveRecord.php";
+include "ActiveRecord.min.php";
 class User extends ActiveRecord{
 	public $table = 'user';
 	public $primaryKey = 'id';
