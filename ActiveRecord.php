@@ -105,7 +105,7 @@ abstract class ActiveRecord extends Base {
      * @return ActiveRecord return $this, can using chain method calls.
      */
 	public function dirty($dirty = array()){
-        $this->data = array_merge($this->data, $this->dirty = array_merge($this->dirty, $dirty));
+        $this->data = array_merge($this->data, $this->dirty = $dirty);
         return $this;
     }
     /**
@@ -146,7 +146,7 @@ abstract class ActiveRecord extends Base {
      */
 	public function update() {
         if (count($this->dirty) == 0) return true;
-		foreach($this->dirty as $field => $value) $this->addCondition($field, '=', $value, '' , 'set');
+		foreach($this->dirty as $field => $value) $this->addCondition($field, '=', $value, ',' , 'set');
 		if(self::execute($this->eq($this->primaryKey, $this->{$this->primaryKey})->_buildSql(array('update', 'set', 'where')), $this->params)) 
 			return $this->dirty()->reset();
 		return false;
@@ -240,6 +240,7 @@ abstract class ActiveRecord extends Base {
 		array_walk($sqls, function (&$n, $i, $o){
 			if ('select' === $n && null == $o->$n) $n = strtoupper($n). ' '.$o->table.'.*';
 			elseif (('update' === $n||'from' === $n) && null == $o->$n) $n = strtoupper($n).' '. $o->table;
+			elseif ('delete' === $n) $n = strtoupper($n). ' ';
 			else $n = (null !== $o->$n) ? $o->$n. ' ' : '';
 		}, $this);
         //this code to debug info.
