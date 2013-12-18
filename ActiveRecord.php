@@ -183,8 +183,9 @@ abstract class ActiveRecord extends Base {
      * @param ActiveRecord $obj The object, if find record in database, will assign the attributes in to this object.
      * @return bool|ActiveRecord 
      */
+	public static function _queryCallback($sth, $obj){ $sth->fetch( PDO::FETCH_INTO ); return $obj->dirty();}
 	public static function query($sql, $param = array(), $obj = null) {
-		return self::callbackQuery(function ($sth, $obj){ $sth->fetch( PDO::FETCH_INTO ); return $obj->dirty();}, $sql, $param, $obj);
+		return self::callbackQuery('ActiveRecord::_queryCallback', $sql, $param, $obj);
 	}
     /**
      * helper function to execute sql with callback, can using this call back to fetch data.
@@ -196,7 +197,7 @@ abstract class ActiveRecord extends Base {
      */
 	public static function callbackQuery($cb, $sql, $param = array(), $obj = null) {
 		if ($sth = self::$db->prepare($sql)) {
-			$sth->setFetchMode( PDO::FETCH_INTO , ($obj ? : new get_called_class()));
+			$sth->setFetchMode( PDO::FETCH_INTO , ($obj ? $obj : new get_called_class()));
 			$sth->execute($param);
 			return call_user_func($cb, $sth, $obj);
 		}
@@ -208,12 +209,13 @@ abstract class ActiveRecord extends Base {
      * @param array $param The param will be bind to PDOStatement.
      * @return mixed if success to exec SQL, return array of ActiveRecord object, other wise return false.
      */
+	public static function _queryAllCallback($sth, $obj){ 
+		$result = array();
+		while ($obj = $sth->fetch( PDO::FETCH_INTO )) $result[] = clone $obj->dirty();
+		return $result;
+	}
 	public static function queryAll($sql, $param = array(), $obj = null) {
-		return self::callbackQuery(function ($sth, $obj){ 
-			$result = array();
-			while ($obj = $sth->fetch( PDO::FETCH_INTO )) $result[] = clone $obj->dirty();
-			return $result;
-		}, $sql, $param, $obj);
+		return self::callbackQuery('ActiveRecord::_queryAllCallback', $sql, $param, $obj);
 	}
     /**
      * helper function to get relation of this object.
@@ -222,12 +224,13 @@ abstract class ActiveRecord extends Base {
      * @return mixed 
      */
 	protected function & getRelation($name) {
-		if ((!$this->relations[$name] instanceof self) && self::HAS_ONE == $this->relations[$name][0])
-			$this->relations[$name] = (new $this->relations[$name][1])->eq($this->relations[$name][2], $this->{$this->primaryKey})->find();
+		$obj = new $this->relations[$name][1];
+		if ((!$this->relations[$name] instanceof self) && self::HAS_ONE == $this->relations[$name][0]) 
+			$this->relations[$name] = $obj->eq($this->relations[$name][2], $this->{$this->primaryKey})->find();
 		elseif (is_array($this->relations[$name]) && self::HAS_MANY == $this->relations[$name][0])
-			$this->relations[$name] = (new $this->relations[$name][1])->eq($this->relations[$name][2], $this->{$this->primaryKey})->findAll();
+			$this->relations[$name] = $obj->eq($this->relations[$name][2], $this->{$this->primaryKey})->findAll();
 		elseif ((!$this->relations[$name] instanceof self) && self::BELONGS_TO == $this->relations[$name][0])
-			$this->relations[$name] = (new $this->relations[$name][1])->find($this->{$this->relations[$name][2]});
+			$this->relations[$name] = $obj->find($this->{$this->relations[$name][2]});
 		else throw new Exception("Relation $name not found.");
 		return $this->relations[$name];
 	}
@@ -236,13 +239,14 @@ abstract class ActiveRecord extends Base {
      * @param array $sqls The SQL part will be build.
      * @return string 
      */
+	private function _buildSqlCallback(&$n, $i, $o){
+		if ('select' === $n && null == $o->$n) $n = strtoupper($n). ' '.$o->table.'.*';
+		elseif (('update' === $n||'from' === $n) && null == $o->$n) $n = strtoupper($n).' '. $o->table;
+		elseif ('delete' === $n) $n = strtoupper($n). ' ';
+		else $n = (null !== $o->$n) ? $o->$n. ' ' : '';
+	}
 	public function _buildSql($sqls = array()) {
-		array_walk($sqls, function (&$n, $i, $o){
-			if ('select' === $n && null == $o->$n) $n = strtoupper($n). ' '.$o->table.'.*';
-			elseif (('update' === $n||'from' === $n) && null == $o->$n) $n = strtoupper($n).' '. $o->table;
-			elseif ('delete' === $n) $n = strtoupper($n). ' ';
-			else $n = (null !== $o->$n) ? $o->$n. ' ' : '';
-		}, $this);
+		array_walk($sqls, array($this, '_buildSqlCallback'), $this);
         //this code to debug info.
 		//echo 'SQL: ', implode(' ', $sqls), "\n", "PARAMS: ", implode(', ', $this->params), "\n";
 		return implode(' ', $sqls);
@@ -393,6 +397,6 @@ class Expressions extends Base {
  */
 class WrapExpressions extends Expressions {
     public function __toString() {
-        return ($this->start ? : '('). implode(($this->delimiter ? : ','), $this->target). ($this->end?:')');
+        return ($this->start ? $this->start: '('). implode(($this->delimiter ? $this->delimiter: ','), $this->target). ($this->end?$this->end:')');
     }
 }
