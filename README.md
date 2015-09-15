@@ -72,6 +72,6 @@ $contact = new Contact();
 var_dump($contact->find());
 // get user by using relation:
 //    'user' => array(self::BELONGS_TO, 'User', 'user_id'),
-var_dump($contact->users);
+var_dump($contact->user);
 ```
 
