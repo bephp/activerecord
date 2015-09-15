@@ -1,9 +1,9 @@
 {
     "name": "lloydzhou/activerecord",
     "type": "library",
-    "description": "simple activerecord in PHP"
+    "description": "simple activerecord in PHP",
     "keywords": ["activerecord", "orm"],
-    "homepage": "http://lloydzhou.github.io/activerecord/"
+    "homepage": "http://lloydzhou.github.io/activerecord/",
     "license": "MIT",
     "require": {
         "php": ">=5.3.0"
