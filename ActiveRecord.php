@@ -223,17 +223,20 @@ abstract class ActiveRecord extends Base {
      * @param string $name The name of the relation, the array key when defind the relation.
      * @return mixed 
      */
-	protected function & getRelation($name) {
-		$obj = new $this->relations[$name][1];
-		if ((!$this->relations[$name] instanceof self) && self::HAS_ONE == $this->relations[$name][0]) 
-			$this->relations[$name] = $obj->eq($this->relations[$name][2], $this->{$this->primaryKey})->find();
-		elseif (is_array($this->relations[$name]) && self::HAS_MANY == $this->relations[$name][0])
-			$this->relations[$name] = $obj->eq($this->relations[$name][2], $this->{$this->primaryKey})->findAll();
-		elseif ((!$this->relations[$name] instanceof self) && self::BELONGS_TO == $this->relations[$name][0])
-			$this->relations[$name] = $obj->find($this->{$this->relations[$name][2]});
-		else throw new Exception("Relation $name not found.");
-		return $this->relations[$name];
-	}
+    protected function & getRelation($name) {
+        $relation = $this->relations[$name];
+        if ($relation instanceof self || (is_array($relation) && $relation[0] instanceof self))
+            return $relation;
+        $obj = new $relation[1];
+        if ((!$relation instanceof self) && self::HAS_ONE == $relation[0]) 
+            $this->relations[$name] = $obj->eq($relation[2], $this->{$this->primaryKey})->find();
+        elseif (is_array($relation) && self::HAS_MANY == $relation[0])
+            $this->relations[$name] = $obj->eq($relation[2], $this->{$this->primaryKey})->findAll();
+        elseif ((!$relation instanceof self) && self::BELONGS_TO == $relation[0])
+            $this->relations[$name] = $obj->find($this->{$relation[2]});
+        else throw new Exception("Relation $name not found.");
+        return $this->relations[$name];
+    }
     /**
      * helper function to build SQL with sql parts.
      * @param array $sqls The SQL part will be build.
