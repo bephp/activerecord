@@ -1,5 +1,5 @@
 # activerecord
-simple activerecord in PHP  
+micro activerecord library in PHP(only 400 lines with comments), support chain calls and relations(HAS_ONE, HAS_MANY, BELONGS_TO).
 
 ##API Reference
 [API Reference](http://lloydzhou.github.io/activerecord/)
