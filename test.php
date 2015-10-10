@@ -55,4 +55,4 @@ echo "\nContact of User # {$user->id}\n";
 var_dump($user->contacts);
 $contact = new Contact();
 var_dump($contact->find());
-var_dump($contact->users);
+var_dump($contact->user);
