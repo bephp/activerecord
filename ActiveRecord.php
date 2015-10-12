@@ -45,18 +45,19 @@ abstract class ActiveRecord extends Base {
 	public static $sqlParts = array(
 		'select' => 'SELECT',
 		'from' => 'FROM',
+		'where' => 'WHERE',
 		'group' => 'GROUP BY','groupby' => 'GROUP BY',
+		'having' => 'HAVING',
 		'order' => 'ORDER BY','orderby' => 'ORDER BY',
 		'limit' => 'limit',
 		'top' => 'TOP',
-		'where' => 'WHERE',
 	);
     /**
      * @var array Static property to stored the default Sql Expressions values.
      */
 	public static $defaultSqlExpressions = array('expressions' => array(), 'wrap' => false,
 		'select'=>null, 'insert'=>null, 'update'=>null, 'set' => null, 'delete'=>'DELETE ', 
-		'from'=>null, 'values' => null, 'where'=>null, 'limit'=>null, 'order'=>null, 'group' => null);
+		'from'=>null, 'values' => null, 'where'=>null, 'having'=>null, 'limit'=>null, 'order'=>null, 'group' => null);
     /**
      * @var array Stored the Expressions of the SQL. 
      */
@@ -122,7 +123,7 @@ abstract class ActiveRecord extends Base {
      */
 	public function find($id = null) {
 		if ($id) $this->eq($this->primaryKey, $id);
-		if(self::query($this->limit(1)->_buildSql(array('select', 'from', 'where', 'group', 'order', 'limit')), $this->params, $this->reset())) 	
+		if(self::query($this->limit(1)->_buildSql(array('select', 'from', 'where', 'group', 'having', 'order', 'limit')), $this->params, $this->reset()))
             return $this;
 		return false;
 	}
@@ -131,7 +132,7 @@ abstract class ActiveRecord extends Base {
      * @return array return array of ActiveRecord
      */
 	public function findAll() {
-		return self::queryAll($this->_buildSql(array('select', 'from', 'where', 'group', 'order', 'limit')), $this->params, $this->reset());
+		return self::queryAll($this->_buildSql(array('select', 'from', 'where', 'group', 'having', 'order', 'limit')), $this->params, $this->reset());
 	}
     /**
      * function to delete current record in database.

@@ -1,8 +1,8 @@
 {
     "name": "lloydzhou/activerecord",
     "type": "library",
-    "description": "simple activerecord in PHP",
-    "keywords": ["activerecord", "orm"],
+    "description": "micro activerecord library in PHP(only 400 lines with comments), support chain calls and relations(HAS_ONE, HAS_MANY, BELONGS_TO).",
+    "keywords": ["activerecord", "orm", "pdo", "relation", "micro", "database"],
     "homepage": "http://lloydzhou.github.io/activerecord/",
     "license": "MIT",
     "require": {
