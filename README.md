@@ -1,4 +1,6 @@
 # activerecord
+[![Build Status](https://travis-ci.org/lloydzhou/activerecord.svg?branch=master)](https://travis-ci.org/lloydzhou/activerecord)
+
 micro activerecord library in PHP(only 400 lines with comments), support chain calls and relations(HAS_ONE, HAS_MANY, BELONGS_TO).
 
 ##API Reference
