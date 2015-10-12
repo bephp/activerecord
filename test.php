@@ -31,7 +31,7 @@ ActiveRecord::execute("CREATE TABLE IF NOT EXISTS contact (
 				email TEXT,
 				address TEXT
 			);");
-/*
+
 $user = new User();
 $user->name = 'demo';
 $user->password = md5('demo');
@@ -42,7 +42,7 @@ $contact->address = 'test';
 $contact->email = 'test1234456@domain.com';
 $contact->user_id = $user->id;
 var_dump($contact->insert());
-*/
+
 /*
 $contact = new Contact();
 $contact->address = 'test';
@@ -55,5 +55,5 @@ var_dump($user->notnull('id')->orderby('id desc')->find());
 echo "\nContact of User # {$user->id}\n";
 var_dump($user->contacts);
 $contact = new Contact();
-var_dump($contact->find());
+//var_dump($contact->find());
 var_dump($contact->user);

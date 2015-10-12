@@ -180,7 +180,7 @@ abstract class ActiveRecord extends Base {
      */
     public static function execute($sql, $param = array()) {
         if (!($result = (($sth = self::$db->prepare($sql)) && $sth->execute($param))))
-            self::log($sth?$sth->errorInfo():self::$db->errorInfo());
+            self::log($sth?$sth->errorInfo():self::$db->errorInfo(), $sql);
         return $result;
     }
     /**
@@ -206,9 +206,9 @@ abstract class ActiveRecord extends Base {
         if ($sth = self::$db->prepare($sql)) {
             $sth->setFetchMode( PDO::FETCH_INTO , ($obj ? $obj : new get_called_class()));
             if (!$sth->execute($param))
-                return self::log($sth->errorInfo());
+                return self::log($sth->errorInfo(), $sql);
             return call_user_func($cb, $sth, $obj);
-        } else self::log(self::$db->errorInfo());
+        } else self::log(self::$db->errorInfo(), $sql);
         return false;
     }
     /**
@@ -373,11 +373,11 @@ abstract class ActiveRecord extends Base {
     /**
      * error log function, can set 
      */
-    public static function log($handler_or_info){
+    public static function log($handler_or_info, $sql=''){
         if (is_callable($handler_or_info))
             return (self::$logger = $handler_or_info);
         $msg = is_string($handler_or_info) ? $handler_or_info
-            : call_user_func_array('sprintf', array_merge(array('SQLSTATE [%s] Code [%d] Message [%s]'), $handler_or_info));
+            : call_user_func_array('sprintf', array_merge(array('SQL [%s] SQLSTATE [%s] Code [%d] Message [%s]'), array_merge(array($sql), $handler_or_info)));
         is_callable(self::$logger) ? self::$logger($msg) : error_log($msg);
     }
 }
