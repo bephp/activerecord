@@ -1,6 +1,6 @@
 <?php 
-//include "ActiveRecord.php";
-include "ActiveRecord.min.php";
+include "ActiveRecord.php";
+//include "ActiveRecord.min.php";
 class User extends ActiveRecord{
 	public $table = 'user';
 	public $primaryKey = 'id';
@@ -19,6 +19,7 @@ class Contact extends ActiveRecord{
 
 ActiveRecord::setDb(new PDO('sqlite:test.db'));
 
+ActiveRecord::execute("CREATE TABLE IF NOT EXISTS user (");
 ActiveRecord::execute("CREATE TABLE IF NOT EXISTS user (
 				id INTEGER PRIMARY KEY, 
 				name TEXT, 

@@ -13,7 +13,11 @@ abstract class ActiveRecord extends Base {
     /**
      * @var PDO static property to connect database.
      */
-	public static $db;
+    public static $db;
+    /**
+     * @var error_log handler
+     */
+	public static $logger;
     /**
      * @var array maping the function name and the operator, to build Expressions in WHERE condition.
      * <pre>user can call it like this: 
@@ -175,7 +179,9 @@ abstract class ActiveRecord extends Base {
      * @return bool 
      */
 	public static function execute($sql, $param = array()) {
-		return (($sth = self::$db->prepare($sql)) && $sth->execute($param));
+        if (!($result = (($sth = self::$db->prepare($sql)) && $sth->execute($param))))
+            self::log($sth?$sth->errorInfo():self::$db->errorInfo());
+        return $result;
 	}
     /**
      * helper function to query one record by sql and params.
@@ -199,9 +205,10 @@ abstract class ActiveRecord extends Base {
 	public static function callbackQuery($cb, $sql, $param = array(), $obj = null) {
 		if ($sth = self::$db->prepare($sql)) {
 			$sth->setFetchMode( PDO::FETCH_INTO , ($obj ? $obj : new get_called_class()));
-			$sth->execute($param);
+            if (!$sth->execute($param))
+                return self::log($sth->errorInfo());
 			return call_user_func($cb, $sth, $obj);
-		}
+		} else self::log(self::$db->errorInfo());
 		return false;
 	}
     /**
@@ -343,7 +350,8 @@ abstract class ActiveRecord extends Base {
      * magic function to SET values of the current object.
      */
 	public function __set($var, $val) {
-		if (array_key_exists($var, $this->sqlExpressions) || array_key_exists($var, self::$defaultSqlExpressions)) $this->sqlExpressions[$var] = $val;
+        if (array_key_exists($var, $this->sqlExpressions) || array_key_exists($var, self::$defaultSqlExpressions))
+            $this->sqlExpressions[$var] = $val;
 		else $this->dirty[$var] = $this->data[$var] = $val;
 	}
     /**
@@ -362,6 +370,16 @@ abstract class ActiveRecord extends Base {
 		else if (array_key_exists($var, $this->relations)) return $this->getRelation($var);
 		else return  parent::__get($var);
 	}
+    /**
+     * error log function, can set 
+     */
+    public static function log($handler_or_info){
+        if (is_callable($handler_or_info))
+            return (self::$logger = $handler_or_info);
+        $msg = is_string($handler_or_info) ? $handler_or_info
+            : call_user_func_array('sprintf', array_merge(array('SQLSTATE [%s] Code [%d] Message [%s]'), $handler_or_info));
+        is_callable(self::$logger) ? self::$logger($msg) : error_log($msg);
+    }
 }
 /**
  * base class to stord attributes in one array.
