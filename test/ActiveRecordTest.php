@@ -70,11 +70,15 @@ class ActiveRecordTest extends \PHPUnit_Framework_TestCase {
     public function testDelete($contact){
         $cid = $contact->id;
         $uid = $contact->user_id; 
-        $this->assertEquals($cid, (new Contact())->find($cid)->id);
-        $this->assertEquals($uid, (new User())->eq('id', $uid)->find()->id);
+        $new_contact = new Contact();
+        $new_user = new User();
+        $this->assertEquals($cid, $new_contact->find($cid)->id);
+        $this->assertEquals($uid, $new_user->eq('id', $uid)->find()->id);
         $this->assertTrue($contact->user->delete());
         $this->assertTrue($contact->delete());
-        $this->assertNull((new Contact())->eq('id', $cid)->find()->id);
-        $this->assertNull((new User())->find($uid)->id);
+        $new_contact = new Contact();
+        $new_user = new User();
+        $this->assertNull($new_contact->eq('id', $cid)->find()->id);
+        $this->assertNull($new_user->find($uid)->id);
     }
 }
