@@ -1,5 +1,6 @@
 # activerecord
 [![Build Status](https://travis-ci.org/lloydzhou/activerecord.svg?branch=master)](https://travis-ci.org/lloydzhou/activerecord)
+[![Latest Stable Version](https://poser.pugx.org/lloydzhou/activerecord/v/stable)](https://packagist.org/packages/lloydzhou/activerecord) [![Total Downloads](https://poser.pugx.org/lloydzhou/activerecord/downloads)](https://packagist.org/packages/lloydzhou/activerecord) [![Latest Unstable Version](https://poser.pugx.org/lloydzhou/activerecord/v/unstable)](https://packagist.org/packages/lloydzhou/activerecord) [![License](https://poser.pugx.org/lloydzhou/activerecord/license)](https://packagist.org/packages/lloydzhou/activerecord)
 
 micro activerecord library in PHP(only 400 lines with comments), support chain calls and relations(HAS_ONE, HAS_MANY, BELONGS_TO).
 
