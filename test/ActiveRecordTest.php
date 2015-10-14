@@ -35,11 +35,31 @@ class ActiveRecordTest extends \PHPUnit_Framework_TestCase {
     /**
      * @depends testInit
      */
+    public function testError(){
+        $self = $this;
+        ActiveRecord::error(function($message) use ($self){
+            $self->assertEquals('SQL [CREATE TABLE IF NOT EXISTS] SQLSTATE [HY000] Code [1] Message [near "EXISTS": syntax error]', $message);
+        });
+        ActiveRecord::execute('CREATE TABLE IF NOT EXISTS');
+    }
+    /**
+     * @depends testInit
+     */
     public function testInsertUser(){
         $user = new User();
         $user->name = 'demo';
         $user->password = md5('demo');
         $user->insert();
+        $this->assertGreaterThan(0, $user->id);
+        return $user;
+    }
+    /**
+     * @depends testInsertUser
+     */
+    public function testEdittUser($user){
+        $user->name = 'demo1';
+        $user->password = md5('demo1');
+        $user->update();
         $this->assertGreaterThan(0, $user->id);
         return $user;
     }
@@ -58,11 +78,38 @@ class ActiveRecordTest extends \PHPUnit_Framework_TestCase {
     /**
      * @depends testInsertContact
      */
+    public function testEditContact($contact){
+        $contact->address = 'test1';
+        $contact->email = 'test1@demo.com';
+        $contact->update();
+        $this->assertGreaterThan(0, $contact->id);
+        return $contact;
+    }
+    /**
+     * @depends testInsertContact
+     */
     public function testRelations($contact){
         $this->assertEquals($contact->user->id, $contact->user_id);
         $this->assertEquals($contact->user->contact->id, $contact->id);
         $this->assertEquals($contact->user->contacts[0]->id, $contact->id);
+        $this->assertGreaterThan(0, count($contact->user->contacts));
         return $contact;
+    }
+    /**
+     * @depends testInsertContact
+     */
+    public function testQuery($contact){
+        $user = new User();
+        $user->isnotnull('id')->eq('id', 1)->lt('id', 2)->gt('id', 0)->find();
+        $this->assertGreaterThan(0, $user->id);
+        $this->assertSame(array(), $user->dirty);
+        $user->name = 'testname';
+        $this->assertSame(array('name'=>'testname'), $user->dirty);
+        $name = $user->name;
+        $this->assertEquals('testname', $name);
+        unset($user->name);
+        $this->assertSame(array(), $user->dirty);
+        $user->reset()->isnotnull('id')->eq('id', 'aaa"')->wrap()->lt('id', 2)->gt('id', 0)->wrap('OR')->find();
     }
     /**
      * @depends testRelations

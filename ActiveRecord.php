@@ -378,7 +378,7 @@ abstract class ActiveRecord extends Base {
             return (self::$logger = $handler_or_info);
         $msg = is_string($handler_or_info) ? $handler_or_info
             : call_user_func_array('sprintf', array_merge(array('SQL [%s] SQLSTATE [%s] Code [%d] Message [%s]'), array_merge(array($sql), $handler_or_info)));
-        is_callable(self::$logger) ? self::$logger($msg) : error_log($msg);
+        is_callable(self::$logger) ? call_user_func(self::$logger, $msg) : error_log($msg);
     }
 }
 /**
