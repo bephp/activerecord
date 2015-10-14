@@ -9,6 +9,7 @@
         "php": ">=5.3.0"
     },
     "require-dev": {
+        "satooshi/php-coveralls":"*",
         "phpunit/phpunit": "*"
     },
     "autoload": {
