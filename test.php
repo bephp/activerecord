@@ -17,9 +17,13 @@ class Contact extends ActiveRecord{
 	);
 }
 
-ActiveRecord::setDb(new PDO('sqlite:test.db'));
-
-ActiveRecord::execute("CREATE TABLE IF NOT EXISTS user (");
+ActiveRecord::setDb(new PDO('sqlite:test.db', null, null, array(PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION)));
+try {
+    ActiveRecord::execute("CREATE TABLE IF NOT EXISTS user (");
+    ActiveRecord::execute("select * from aaa");
+} catch( Exception $e) {
+    var_export($e);
+}
 ActiveRecord::execute("CREATE TABLE IF NOT EXISTS user (
 				id INTEGER PRIMARY KEY, 
 				name TEXT, 

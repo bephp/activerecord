@@ -15,10 +15,6 @@ abstract class ActiveRecord extends Base {
      */
     public static $db;
     /**
-     * @var error_log handler
-     */
-    public static $logger;
-    /**
      * @var array maping the function name and the operator, to build Expressions in WHERE condition.
      * <pre>user can call it like this: 
      *      $user->isnotnull()->eq('id', 1); 
@@ -179,9 +175,7 @@ abstract class ActiveRecord extends Base {
      * @return bool 
      */
     public static function execute($sql, $param = array()) {
-        if (!($result = (($sth = self::$db->prepare($sql)) && $sth->execute($param))))
-            self::error($sth?$sth->errorInfo():self::$db->errorInfo(), $sql);
-        return $result;
+        return  (($sth = self::$db->prepare($sql)) && $sth->execute($param));
     }
     /**
      * helper function to query one record by sql and params.
@@ -205,10 +199,9 @@ abstract class ActiveRecord extends Base {
     public static function callbackQuery($cb, $sql, $param = array(), $obj = null) {
         if ($sth = self::$db->prepare($sql)) {
             $sth->setFetchMode( PDO::FETCH_INTO , ($obj ? $obj : new get_called_class()));
-            if (!$sth->execute($param))
-                return self::error($sth->errorInfo(), $sql);
+            $sth->execute($param);
             return call_user_func($cb, $sth, $obj);
-        } else self::error(self::$db->errorInfo(), $sql);
+        }
         return false;
     }
     /**
@@ -369,16 +362,6 @@ abstract class ActiveRecord extends Base {
         if (array_key_exists($var, $this->sqlExpressions)) return  $this->sqlExpressions[$var];
         else if (array_key_exists($var, $this->relations)) return $this->getRelation($var);
         else return  parent::__get($var);
-    }
-    /**
-     * error log function, can set 
-     */
-    public static function error($handler_or_info, $sql=''){
-        if (is_callable($handler_or_info))
-            return (self::$logger = $handler_or_info);
-        $msg = is_string($handler_or_info) ? $handler_or_info
-            : call_user_func_array('sprintf', array_merge(array('SQL [%s] SQLSTATE [%s] Code [%d] Message [%s]'), array_merge(array($sql), $handler_or_info)));
-        is_callable(self::$logger) ? call_user_func(self::$logger, $msg) : error_log($msg);
     }
 }
 /**

@@ -36,11 +36,14 @@ class ActiveRecordTest extends \PHPUnit_Framework_TestCase {
      * @depends testInit
      */
     public function testError(){
-        $self = $this;
-        ActiveRecord::error(function($message) use ($self){
-            $self->assertEquals('SQL [CREATE TABLE IF NOT EXISTS] SQLSTATE [HY000] Code [1] Message [near "EXISTS": syntax error]', $message);
-        });
-        ActiveRecord::execute('CREATE TABLE IF NOT EXISTS');
+        try{
+            ActiveRecord::$db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            ActiveRecord::execute('CREATE TABLE IF NOT EXISTS');
+        }catch(Exception $e){
+            $this->assertInstanceOf('PDOException', $e);
+            $this->assertEquals('HY000', $e->getCode());
+            $this->assertEquals('SQLSTATE[HY000]: General error: 1 near "EXISTS": syntax error', $e->getMessage());
+        }
     }
     /**
      * @depends testInit
