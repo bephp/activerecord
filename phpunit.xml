@@ -27,6 +27,8 @@
             <exclude>
                 <directory>./vendor</directory>
                 <directory>./test</directory>
+                <file>./run.php</file>
+                <file>./test.php</file>
             </exclude>
         </whitelist>
     </filter>
