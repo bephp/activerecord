@@ -16,9 +16,11 @@ script:
 
 after_script:
   - php vendor/bin/coveralls -v
-  - ./vendor/bin/phpdoc -t . -f ActiveRecord.php
+  - ./vendor/bin/phpdoc -t doc -f ActiveRecord.php
+  - cd doc
+  - git init
   - git config user.name "Travis CI"
   - git config user.email "lloydzhou@qq.com"
-  - git add .htaccess classes css files font graphs images index.html js namespaces reports
+  - git add .
   - git commit -m "Deploy to GitHub Pages"
-  - git push --force --quiet "https://$GH_TOKEN@$GH_REF" master:gh-pages
+  - git push --force --quiet "https://$GH_TOKEN@$GH_REF" master:gh-pages > /dev/null 2>&1
