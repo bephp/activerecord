@@ -178,13 +178,19 @@ abstract class ActiveRecord extends Base {
         return  (($sth = self::$db->prepare($sql)) && $sth->execute($param));
     }
     /**
+     * helper function to query record from db.
+     * @param PDOStatement $sth the PDOStatement instance
+     * @param ActiveRecord $obj The object, if find record in database, will assign the attributes in to this object.
+     * @return bool 
+     */
+    protected static function _queryCallback($sth, $obj){ $sth->fetch( PDO::FETCH_INTO ); return $obj->dirty();}
+    /**
      * helper function to query one record by sql and params.
      * @param string $sql The SQL to find record.
      * @param array $param The param will be bind to PDOStatement.
      * @param ActiveRecord $obj The object, if find record in database, will assign the attributes in to this object.
      * @return bool|ActiveRecord 
      */
-    public static function _queryCallback($sth, $obj){ $sth->fetch( PDO::FETCH_INTO ); return $obj->dirty();}
     public static function query($sql, $param = array(), $obj = null) {
         return self::callbackQuery('ActiveRecord::_queryCallback', $sql, $param, $obj);
     }
@@ -205,16 +211,24 @@ abstract class ActiveRecord extends Base {
         return false;
     }
     /**
-     * helper function to find all records by SQL.
-     * @param string $sql The SQL to find record.
-     * @param array $param The param will be bind to PDOStatement.
-     * @return mixed if success to exec SQL, return array of ActiveRecord object, other wise return false.
+     * helper function to query record from db.
+     * @param PDOStatement $sth the PDOStatement instance
+     * @param ActiveRecord $obj The object, if find record in database, will assign the attributes in to this object.
+     * @return bool 
+     * @see _queryCallback
      */
-    public static function _queryAllCallback($sth, $obj){ 
+    protected static function _queryAllCallback($sth, $obj){ 
         $result = array();
         while ($obj = $sth->fetch( PDO::FETCH_INTO )) $result[] = clone $obj->dirty();
         return $result;
     }
+    /**
+     * helper function to find all records by SQL.
+     * @param string $sql The SQL to find record.
+     * @param array $param The param will be bind to PDOStatement.
+     * @param ActiveRecord $obj The object, if find record in database, will assign the attributes in to this object.
+     * @return mixed if success to exec SQL, return array of ActiveRecord object, other wise return false.
+     */
     public static function queryAll($sql, $param = array(), $obj = null) {
         return self::callbackQuery('ActiveRecord::_queryAllCallback', $sql, $param, $obj);
     }
@@ -240,7 +254,9 @@ abstract class ActiveRecord extends Base {
     }
     /**
      * helper function to build SQL with sql parts.
-     * @param array $sqls The SQL part will be build.
+     * @param string $n The SQL part will be build.
+     * @param int $i The index of $n in $sqls array.
+     * @param ActiveRecord $o The refrence to $this
      * @return string 
      */
     private function _buildSqlCallback(&$n, $i, $o){
@@ -249,7 +265,12 @@ abstract class ActiveRecord extends Base {
         elseif ('delete' === $n) $n = strtoupper($n). ' ';
         else $n = (null !== $o->$n) ? $o->$n. ' ' : '';
     }
-    public function _buildSql($sqls = array()) {
+    /**
+     * helper function to build SQL with sql parts.
+     * @param array $sqls The SQL part will be build.
+     * @return string 
+     */
+    protected function _buildSql($sqls = array()) {
         array_walk($sqls, array($this, '_buildSqlCallback'), $this);
         //this code to debug info.
         //echo 'SQL: ', implode(' ', $sqls), "\n", "PARAMS: ", implode(', ', $this->params), "\n";
@@ -288,6 +309,8 @@ abstract class ActiveRecord extends Base {
     }
     /**
      * helper function to build place holder when make SQL expressions.
+     * @param mixed $value the value will bind to SQL, just store it in $this->params.
+     * @return mixed $value
      */
     protected function _filterParam($value) {
         if (is_array($value)) foreach($value as $key => $val) $this->params[$value[$key] = self::PREFIX. ++self::$count] = $val;
