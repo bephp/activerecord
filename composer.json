@@ -6,7 +6,8 @@
     "homepage": "http://lloydzhou.github.io/activerecord/",
     "license": "MIT",
     "require": {
-        "php": ">=5.3.0"
+        "php": ">=5.3.0",
+        "phpdocumentor/phpdocumentor": "^2.8"
     },
     "require-dev": {
         "satooshi/php-coveralls":"*",
