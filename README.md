@@ -1,7 +1,7 @@
 # activerecord
-[![Build Status](https://travis-ci.org/lloydzhou/activerecord.svg?branch=master)](https://travis-ci.org/lloydzhou/activerecord)
-[![Coverage Status](https://coveralls.io/repos/lloydzhou/activerecord/badge.svg?branch=master&service=github)](https://coveralls.io/github/lloydzhou/activerecord?branch=master)
-[![Latest Stable Version](https://poser.pugx.org/lloydzhou/activerecord/v/stable)](https://packagist.org/packages/lloydzhou/activerecord) [![Total Downloads](https://poser.pugx.org/lloydzhou/activerecord/downloads)](https://packagist.org/packages/lloydzhou/activerecord) [![Latest Unstable Version](https://poser.pugx.org/lloydzhou/activerecord/v/unstable)](https://packagist.org/packages/lloydzhou/activerecord) [![License](https://poser.pugx.org/lloydzhou/activerecord/license)](https://packagist.org/packages/lloydzhou/activerecord)
+[![Build Status](https://travis-ci.org/bephp/activerecord.svg?branch=master)](https://travis-ci.org/bephp/activerecord)
+[![Coverage Status](https://coveralls.io/repos/bephp/activerecord/badge.svg?branch=master&service=github)](https://coveralls.io/github/bephp/activerecord?branch=master)
+[![Latest Stable Version](https://poser.pugx.org/bephp/activerecord/v/stable)](https://packagist.org/packages/bephp/activerecord) [![Total Downloads](https://poser.pugx.org/bephp/activerecord/downloads)](https://packagist.org/packages/bephp/activerecord) [![Latest Unstable Version](https://poser.pugx.org/bephp/activerecord/v/unstable)](https://packagist.org/packages/bephp/activerecord) [![License](https://poser.pugx.org/bephp/activerecord/license)](https://packagist.org/packages/bephp/activerecord)
 
 micro activerecord library in PHP(only 400 lines with comments), support chain calls and relations(HAS_ONE, HAS_MANY, BELONGS_TO).
 
@@ -10,9 +10,9 @@ micro activerecord library in PHP(only 400 lines with comments), support chain c
 
 ## Install
 
-    composer require lloydzhou/activerecord 
+    composer require bephp/activerecord
 
-There's one [Blog demo](https://github.com/lloydzhou/blog), work with [Router](https://github.com/lloydzhou/router) and [MicoTpl](https://github.com/lloydzhou/microtpl).
+There's one [Blog demo](https://github.com/bephp/blog), work with [Router](https://github.com/bephp/router) and [MicoTpl](https://github.com/bephp/microtpl).
 
 ## Demo
 ### Include base class ActiveRecord
