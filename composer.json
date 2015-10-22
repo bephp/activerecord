@@ -1,5 +1,5 @@
 {
-    "name": "lloydzhou/activerecord",
+    "name": "bephp/activerecord",
     "type": "library",
     "description": "micro activerecord library in PHP(only 400 lines with comments), support chain calls and relations(HAS_ONE, HAS_MANY, BELONGS_TO).",
     "keywords": ["activerecord", "orm", "pdo", "relation", "micro", "database"],

@@ -45,6 +45,7 @@ abstract class ActiveRecord extends Base {
     public static $sqlParts = array(
         'select' => 'SELECT',
         'from' => 'FROM',
+        'set' => 'SET',
         'where' => 'WHERE',
         'group' => 'GROUP BY','groupby' => 'GROUP BY',
         'having' => 'HAVING',

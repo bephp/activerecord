@@ -10,7 +10,7 @@ micro activerecord library in PHP(only 400 lines with comments), support chain c
 
 ## Install
 
-    composer require bephp/activerecord
+    composer require bephp/activerecord 
 
 There's one [Blog demo](https://github.com/bephp/blog), work with [Router](https://github.com/bephp/router) and [MicoTpl](https://github.com/bephp/microtpl).
 
