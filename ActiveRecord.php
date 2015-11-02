@@ -140,7 +140,7 @@ abstract class ActiveRecord extends Base {
      * @return bool 
      */
     public function delete() {
-        return self::execute($this->eq($this->primaryKey, $this->{$this->primaryKey})->_buildSql(array('delete', 'from', 'where')), $this->params, $this->reset());
+        return self::execute($this->eq($this->primaryKey, $this->{$this->primaryKey})->_buildSql(array('delete', 'from', 'where')), $this->params);
     }
     /**
      * function to build update SQL, and update current record in database, just write the dirty data into database.
