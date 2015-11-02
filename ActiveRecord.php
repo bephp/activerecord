@@ -123,10 +123,8 @@ abstract class ActiveRecord extends Base {
      * @return bool|ActiveRecord if find record, assign in to current object and return it, other wise return "false".
      */
     public function find($id = null) {
-        if ($id) $this->eq($this->primaryKey, $id);
-        if(self::query($this->limit(1)->_buildSql(array('select', 'from', 'where', 'group', 'having', 'order', 'limit')), $this->params, $this->reset()))
-            return $this;
-        return false;
+        if ($id) $this->reset()->eq($this->primaryKey, $id);
+        return self::query($this->limit(1)->_buildSql(array('select', 'from', 'where', 'group', 'having', 'order', 'limit')), $this->params, $this->reset());
     }
     /**
      * function to find all records in database.
