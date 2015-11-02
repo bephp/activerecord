@@ -25,7 +25,7 @@ abstract class ActiveRecord extends Base {
         'equal' => '=', 'eq' => '=',
         'notequal' => '<>', 'ne' => '<>',
         'greaterthan' => '>', 'gt' => '>',
-        'lessthan' => '', 'lt' => '<',
+        'lessthan' => '<', 'lt' => '<',
         'greaterthanorequal' => '>=', 'ge' => '>=','gte' => '>=',
         'lessthanorequal' => '<=', 'le' => '<=','lte' => '<=',
         'between' => 'BETWEEN',
