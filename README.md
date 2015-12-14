@@ -5,8 +5,124 @@
 
 micro activerecord library in PHP(only 400 lines with comments), support chain calls and relations(HAS_ONE, HAS_MANY, BELONGS_TO).
 
-##API Reference
-[API Reference](https://bephp.github.io/activerecord/)
+## Documentation
+[Documentation](https://bephp.github.io/activerecord/)
+
+## API Reference
+### CRUD functions
+#### setDb(\PDO  $db) 
+set the DB connection.
+
+    ActiveRecord::setDb(new PDO('sqlite:test.db'));
+
+#### insert() : boolean|\ActiveRecord
+function to build insert SQL, and insert current record into database.
+if insert success return current object, other wise return false.
+
+    $user = new User();
+    $user->name = 'demo';
+    $user->password = md5('demo');
+    $user->insert();
+
+#### find(integer  $id = null) : boolean|\ActiveRecord
+function to find one record and assign in to current object. If call this function using $id param, will find record by using this id. If not set, just find the first record in database. if find record, assign in to current object and return it, other wise return "false".
+
+    $user->notnull('id')->orderby('id desc')->find();
+
+#### findAll() : array
+function to find all records in database. return array of ActiveRecord
+
+    $user->findAll();
+
+#### update() : boolean|\ActiveRecord
+function to build update SQL, and update current record in database, just write the dirty data into database.
+if update success return current object, other wise return false.
+
+    $user->notnull('id')->orderby('id desc')->find();
+    $user->email = 'test@example.com';
+    $user->update();
+
+#### delete() : boolean
+function to delete current record in database. 
+
+#### reset() : \ActiveRecord
+function to reset the $params and $sqlExpressions. return $this, can using chain method calls.
+
+#### dirty(array  $dirty = array()) : \ActiveRecord
+function to SET or RESET the dirty data. The dirty data will be set, or empty array to reset the dirty data.
+
+### SQL part functions
+#### select()
+function to set the select columns.
+
+    $user->select('id', 'name')->find();
+
+#### from()
+function to set the table to find record
+
+    $user->select('id', 'name')->from('user')->find();
+
+#### where()
+function to set where conditions
+
+    $user->where('id=1 AND name="demo"')->find();
+
+#### group()/groupby()
+
+    $user->select('count(1) as count')->groupby('name')->findAll();
+    
+#### order()/orderby()
+
+    $user->orderby('name DESC')->find();
+    
+#### limit()
+
+    $user->orderby('name DESC')->limit(0, 1)->find();
+
+### WHERE conditions
+#### equal()/eq()
+
+    $user->eq('id', 1)->find();
+
+#### notequal()/ne()
+
+    $user->ne('id', 1)->find();
+    
+#### greaterthan()/gt()
+
+    $user->gt('id', 1)->find();
+
+#### lessthan()/lt()
+
+    $user->lt('id', 1)->find();
+
+#### greaterthanorequal()/ge()/gte()
+
+    $user->ge('id', 1)->find();
+
+#### lessthanorequal()/le()/lte()
+
+    $user->le('id', 1)->find();
+
+#### like()
+
+    $user->like('name', 'de')->find();
+
+#### in()
+
+    $user->in('id', [1, 2])->find();
+
+#### notin()
+
+    $user->notin('id', [1,3])->find();
+
+#### isnull()
+
+    $user->isnull('id')->find();
+
+#### isnotnull()/notnull()
+
+    $user->isnotnull('id')->find();
 
 ## Install
 
