@@ -128,7 +128,7 @@ class ActiveRecordTest extends \PHPUnit_Framework_TestCase {
         $this->assertTrue($contact->delete());
         $new_contact = new Contact();
         $new_user = new User();
-        $this->assertNull($new_contact->eq('id', $cid)->find()->id);
-        $this->assertNull($new_user->find($uid)->id);
+        $this->assertFalse($new_contact->eq('id', $cid)->find());
+        $this->assertFalse($new_user->find($uid));
     }
 }
