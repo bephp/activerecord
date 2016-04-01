@@ -182,9 +182,8 @@ abstract class ActiveRecord extends Base {
      * @param ActiveRecord $obj The object, if find record in database, will assign the attributes in to this object.
      * @return bool 
      */
-    protected static function _queryCallback($sth, $obj){ 
-        if($sth->fetch( PDO::FETCH_INTO )) return $obj->dirty();
-        return false; 
+    protected static function _queryCallback($sth, $obj){
+        return $sth->fetch( PDO::FETCH_INTO ) ? $obj->dirty() : false;
     }
     /**
      * helper function to query one record by sql and params.
