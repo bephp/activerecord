@@ -124,14 +124,14 @@ abstract class ActiveRecord extends Base {
      */
     public function find($id = null) {
         if ($id) $this->reset()->eq($this->primaryKey, $id);
-        return self::query($this->limit(1)->_buildSql(array('select', 'from', 'where', 'group', 'having', 'order', 'limit')), $this->params, $this->reset());
+        return self::_query($this->limit(1)->_buildSql(array('select', 'from', 'where', 'group', 'having', 'order', 'limit')), $this->params, $this->reset(), true);
     }
     /**
      * function to find all records in database.
      * @return array return array of ActiveRecord
      */
     public function findAll() {
-        return self::queryAll($this->_buildSql(array('select', 'from', 'where', 'group', 'having', 'order', 'limit')), $this->params, $this->reset());
+        return self::_query($this->_buildSql(array('select', 'from', 'where', 'group', 'having', 'order', 'limit')), $this->params, $this->reset());
     }
     /**
      * function to delete current record in database.
@@ -177,61 +177,23 @@ abstract class ActiveRecord extends Base {
         return  (($sth = self::$db->prepare($sql)) && $sth->execute($param));
     }
     /**
-     * helper function to query record from db.
-     * @param PDOStatement $sth the PDOStatement instance
-     * @param ActiveRecord $obj The object, if find record in database, will assign the attributes in to this object.
-     * @return bool 
-     */
-    protected static function _queryCallback($sth, $obj){
-        return $sth->fetch( PDO::FETCH_INTO ) ? $obj->dirty() : false;
-    }
-    /**
      * helper function to query one record by sql and params.
      * @param string $sql The SQL to find record.
      * @param array $param The param will be bind to PDOStatement.
      * @param ActiveRecord $obj The object, if find record in database, will assign the attributes in to this object.
-     * @return bool|ActiveRecord 
+     * @return bool|ActiveRecord|array
      */
-    public static function query($sql, $param = array(), $obj = null) {
-        return self::callbackQuery('ActiveRecord::_queryCallback', $sql, $param, $obj);
-    }
-    /**
-     * helper function to execute sql with callback, can using this call back to fetch data.
-     * @param callable $cb Callback function will call after find records in database.
-     * @param string $sql The SQL to find record.
-     * @param array $param The param will be bind to PDOStatement.
-     * @param ActiveRecord $obj The object, if find record in database, will assign the attributes in to this object.
-     * @return mixed if success to exec SQL, return the return value of callback, other wise return false.
-     */
-    public static function callbackQuery($cb, $sql, $param = array(), $obj = null) {
+    public static function _query($sql, $param = array(), $obj = null, $single=false) {
         if ($sth = self::$db->prepare($sql)) {
             $sth->setFetchMode( PDO::FETCH_INTO , ($obj ? $obj : new get_called_class()));
             $sth->execute($param);
-            return call_user_func($cb, $sth, $obj);
+            if ($single) return $sth->fetch( PDO::FETCH_INTO ) ? $obj->dirty() : false;
+            $result = array();
+            while ($obj = $sth->fetch( PDO::FETCH_INTO )) $result[] = clone $obj->dirty();
+            $sth->closeCursor();
+            return $result;
         }
         return false;
-    }
-    /**
-     * helper function to query record from db.
-     * @param PDOStatement $sth the PDOStatement instance
-     * @param ActiveRecord $obj The object, if find record in database, will assign the attributes in to this object.
-     * @return bool 
-     * @see _queryCallback
-     */
-    protected static function _queryAllCallback($sth, $obj){ 
-        $result = array();
-        while ($obj = $sth->fetch( PDO::FETCH_INTO )) $result[] = clone $obj->dirty();
-        return $result;
-    }
-    /**
-     * helper function to find all records by SQL.
-     * @param string $sql The SQL to find record.
-     * @param array $param The param will be bind to PDOStatement.
-     * @param ActiveRecord $obj The object, if find record in database, will assign the attributes in to this object.
-     * @return mixed if success to exec SQL, return array of ActiveRecord object, other wise return false.
-     */
-    public static function queryAll($sql, $param = array(), $obj = null) {
-        return self::callbackQuery('ActiveRecord::_queryAllCallback', $sql, $param, $obj);
     }
     /**
      * helper function to get relation of this object.
