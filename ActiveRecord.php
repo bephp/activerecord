@@ -190,7 +190,6 @@ abstract class ActiveRecord extends Base {
             if ($single) return $sth->fetch( PDO::FETCH_INTO ) ? $obj->dirty() : false;
             $result = array();
             while ($obj = $sth->fetch( PDO::FETCH_INTO )) $result[] = clone $obj->dirty();
-            $sth->closeCursor();
             return $result;
         }
         return false;
