@@ -332,8 +332,11 @@ abstract class ActiveRecord extends Base {
      */
     public function addCondition($field, $operator, $value, $op = 'AND', $name = 'where') {
         $value = $this->_filterParam($value);
-        if ($exp =  new Expressions(array('source'=>('where' == $name? $this->table.'.' : '' ) .$field, 'operator'=>$operator, 'target'=>(is_array($value) ? 
-            new WrapExpressions(array('target' => $value)) : $value)))) {
+        if ($exp =  new Expressions(array('source'=>('where' == $name? $this->table.'.' : '' ) .$field, 'operator'=>$operator, 'target'=>(is_array($value)
+            ? new WrapExpressions('between' === strtolower($operator)
+                ? array('target' => $value, 'start' => ' ', 'end' => ' ', 'delimiter' => ' AND ')
+                : array('target' => $value)
+            ) : $value)))) {
             if (!$this->wrap)
                 $this->_addCondition($exp, $op, $name);
             else

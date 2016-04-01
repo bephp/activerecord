@@ -113,6 +113,9 @@ class ActiveRecordTest extends \PHPUnit_Framework_TestCase {
         unset($user->name);
         $this->assertSame(array(), $user->dirty);
         $user->reset()->isnotnull('id')->eq('id', 'aaa"')->wrap()->lt('id', 2)->gt('id', 0)->wrap('OR')->find();
+        $this->assertGreaterThan(0, $user->id);
+        $user->reset()->isnotnull('id')->between('id', array(0, 2))->find();
+        $this->assertGreaterThan(0, $user->id);
     }
     /**
      * @depends testRelations
