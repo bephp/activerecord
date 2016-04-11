@@ -205,13 +205,16 @@ abstract class ActiveRecord extends Base {
         $relation = $this->relations[$name];
         if ($relation instanceof self || (is_array($relation) && $relation[0] instanceof self))
             return $relation;
-        $obj = new $relation[1];
+        $this->relations[$name] = $obj = new $relation[1];
+        if (isset($relation[3]) && is_array($relation[3]))
+            foreach((array)$relation[3] as $func => $args)
+                call_user_func_array(array($obj, $func), (array)$args);
         if ((!$relation instanceof self) && self::HAS_ONE == $relation[0]) 
-            $this->relations[$name] = $obj->eq($relation[2], $this->{$this->primaryKey})->find();
+            $obj->eq($relation[2], $this->{$this->primaryKey})->find();
         elseif (is_array($relation) && self::HAS_MANY == $relation[0])
             $this->relations[$name] = $obj->eq($relation[2], $this->{$this->primaryKey})->findAll();
         elseif ((!$relation instanceof self) && self::BELONGS_TO == $relation[0])
-            $this->relations[$name] = $obj->find($this->{$relation[2]});
+            $obj->eq($obj->primaryKey, $this->{$relation[2]})->find();
         else throw new Exception("Relation $name not found.");
         return $this->relations[$name];
     }

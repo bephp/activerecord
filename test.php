@@ -6,7 +6,7 @@ class User extends ActiveRecord{
 	public $primaryKey = 'id';
 	public $relations = array(
 		'contacts' => array(self::HAS_MANY, 'Contact', 'user_id'),
-		'contact' => array(self::HAS_ONE, 'Contact', 'user_id', 'where' => '1', 'order' => 'id desc'),
+		'contact' => array(self::HAS_ONE, 'Contact', 'user_id', array('where' => '1', 'order' => 'id desc')),
 	);
 }
 class Contact extends ActiveRecord{
@@ -47,6 +47,13 @@ $contact->email = 'test1234456@domain.com';
 $contact->user_id = $user->id;
 var_dump($contact->insert());
 
+$contact = new Contact();
+$contact->address = 'test';
+$contact->email = 'test1234456@domain.com';
+$contact->user_id = $user->id;
+var_dump($contact->insert());
+
+var_dump($user->contact);
 /*
 $contact = new Contact();
 $contact->address = 'test';
@@ -59,5 +66,5 @@ var_dump($user->notnull('id')->orderby('id desc')->find());
 echo "\nContact of User # {$user->id}\n";
 var_dump($user->contacts);
 $contact = new Contact();
-//var_dump($contact->find());
+var_dump($contact->find());
 var_dump($contact->user);
