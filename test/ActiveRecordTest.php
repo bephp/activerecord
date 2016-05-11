@@ -101,6 +101,17 @@ class ActiveRecordTest extends \PHPUnit_Framework_TestCase {
     /**
      * @depends testInsertContact
      */
+    public function testJoin($contact){
+        $user = new User();
+        $user->select('*, c.email, c.address')->join('contact as c', 'c.user_id = user.id')->find();
+        // email and address will stored in user data array.
+        $this->assertEquals($user->id, $contact->user_id);
+        $this->assertEquals($user->email, $contact->email);
+        $this->assertEquals($user->address, $contact->address);
+    }
+    /**
+     * @depends testInsertContact
+     */
     public function testQuery($contact){
         $user = new User();
         $user->isnotnull('id')->eq('id', 1)->lt('id', 2)->gt('id', 0)->find();

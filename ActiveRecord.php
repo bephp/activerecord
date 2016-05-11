@@ -57,7 +57,7 @@ abstract class ActiveRecord extends Base {
      * @var array Static property to stored the default Sql Expressions values.
      */
     public static $defaultSqlExpressions = array('expressions' => array(), 'wrap' => false,
-        'select'=>null, 'insert'=>null, 'update'=>null, 'set' => null, 'delete'=>'DELETE ', 
+        'select'=>null, 'insert'=>null, 'update'=>null, 'set' => null, 'delete'=>'DELETE ', 'join' => null,
         'from'=>null, 'values' => null, 'where'=>null, 'having'=>null, 'limit'=>null, 'order'=>null, 'group' => null);
     /**
      * @var array Stored the Expressions of the SQL. 
@@ -124,14 +124,14 @@ abstract class ActiveRecord extends Base {
      */
     public function find($id = null) {
         if ($id) $this->reset()->eq($this->primaryKey, $id);
-        return self::_query($this->limit(1)->_buildSql(array('select', 'from', 'where', 'group', 'having', 'order', 'limit')), $this->params, $this->reset(), true);
+        return self::_query($this->limit(1)->_buildSql(array('select', 'from', 'join', 'where', 'group', 'having', 'order', 'limit')), $this->params, $this->reset(), true);
     }
     /**
      * function to find all records in database.
      * @return array return array of ActiveRecord
      */
     public function findAll() {
-        return self::_query($this->_buildSql(array('select', 'from', 'where', 'group', 'having', 'order', 'limit')), $this->params, $this->reset());
+        return self::_query($this->_buildSql(array('select', 'from', 'join', 'where', 'group', 'having', 'order', 'limit')), $this->params, $this->reset());
     }
     /**
      * function to delete current record in database.
@@ -307,6 +307,19 @@ abstract class ActiveRecord extends Base {
             else
                 $this->_addExpression($exp, $op);
         }
+    }
+    /**
+     * helper function to add condition into JOIN. 
+     * create the SQL Expressions.
+     * @param string $table The join table name
+     * @param string $on The condition of ON
+     * @param string $type The join type, like "LEFT", "INNER", "OUTER"
+     */
+    public function join($table, $on, $type='LEFT'){
+        $this->join = new Expressions(array('source' => $this->join ?: '', 'operator' => $type. ' JOIN', 'target' => new Expressions(
+            array('source' => $table, 'operator' => 'ON', 'target' => $on)
+        )));
+        return $this;
     }
     /**
      * helper function to make wrapper. Stored the expression in to array.

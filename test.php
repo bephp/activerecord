@@ -62,7 +62,8 @@ $contact->user_id = 2;
 var_dump($contact->insert());
 */
 $user = new User();
-var_dump($user->notnull('id')->orderby('id desc')->find());
+var_dump($user->select('user.*, c.email, c.address')->join('contact as c', 'c.user_id = user.id')->findAll());
+var_dump($user->reset()->notnull('id')->orderby('id desc')->find());
 echo "\nContact of User # {$user->id}\n";
 var_dump($user->contacts);
 $contact = new Contact();
