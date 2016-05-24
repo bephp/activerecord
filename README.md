@@ -1,6 +1,6 @@
 # activerecord
 [![Build Status](https://travis-ci.org/bephp/activerecord.svg?branch=master)](https://travis-ci.org/bephp/activerecord)
-[![Coverage Status](https://coveralls.io/repos/bephp/activerecord/badge.svg?branch=master&service=github)](https://coveralls.io/github/bephp/activerecord?branch=master)
+[![Coverage Status](https://coveralls.io/repos/github/bephp/activerecord/badge.svg?branch=master)](https://coveralls.io/github/bephp/activerecord?branch=master)
 [![Latest Stable Version](https://poser.pugx.org/bephp/activerecord/v/stable)](https://packagist.org/packages/bephp/activerecord) [![Total Downloads](https://poser.pugx.org/bephp/activerecord/downloads)](https://packagist.org/packages/bephp/activerecord) [![Latest Unstable Version](https://poser.pugx.org/bephp/activerecord/v/unstable)](https://packagist.org/packages/bephp/activerecord) [![License](https://poser.pugx.org/bephp/activerecord/license)](https://packagist.org/packages/bephp/activerecord)
 
 micro activerecord library in PHP(only 400 lines with comments), support chain calls and relations(HAS_ONE, HAS_MANY, BELONGS_TO).
