@@ -3,23 +3,20 @@
 [![Coverage Status](https://coveralls.io/repos/github/bephp/activerecord/badge.svg?branch=master)](https://coveralls.io/github/bephp/activerecord?branch=master)
 [![Latest Stable Version](https://poser.pugx.org/bephp/activerecord/v/stable)](https://packagist.org/packages/bephp/activerecord) [![Total Downloads](https://poser.pugx.org/bephp/activerecord/downloads)](https://packagist.org/packages/bephp/activerecord) [![Latest Unstable Version](https://poser.pugx.org/bephp/activerecord/v/unstable)](https://packagist.org/packages/bephp/activerecord) [![License](https://poser.pugx.org/bephp/activerecord/license)](https://packagist.org/packages/bephp/activerecord)
 
-micro activerecord library in PHP(only 400 lines with comments), support chain calls and relations(HAS_ONE, HAS_MANY, BELONGS_TO).
+一个微型的ActiveRecord库（包含注释才400行，支持链式调用以及关联关系）
 
-> [中文版](https://github.com/bephp/activerecord/blob/master/README.zh-CN.md).
+## 文档地址
+[文档](https://bephp.github.io/activerecord/)
 
-## Documentation
-[Documentation](https://bephp.github.io/activerecord/)
-
-## API Reference
-### CRUD functions
+## API
+### CRUD 函数
 #### setDb(\PDO  $db) 
-set the DB connection.
+设置数据库连接
 
     ActiveRecord::setDb(new PDO('sqlite:test.db'));
 
 #### insert() : boolean|\ActiveRecord
-function to build insert SQL, and insert current record into database.
-if insert success return current object, other wise return false.
+插入函数，会使用当前对象的值生成插入SQL语句，如果插入成功，返回当前对象，否则返回false
 
     $user = new User();
     $user->name = 'demo';
@@ -27,50 +24,52 @@ if insert success return current object, other wise return false.
     $user->insert();
 
 #### find(integer  $id = null) : boolean|\ActiveRecord
-function to find one record and assign in to current object. If call this function using $id param, will find record by using this id. If not set, just find the first record in database. if find record, assign in to current object and return it, other wise return "false".
+从数据库查找记录，并将记录赋值给当前对象
+如果使用$id参数，则使用这个id来进行查找
+如果查找到记录，则赋值给当前对象，否则返回false
 
     $user->notnull('id')->orderby('id desc')->find();
 
 #### findAll() : array
-function to find all records in database. return array of ActiveRecord
+查找一个列表数据，返回的数组里面，每一个都是一个ActiveRecord对象
 
     $user->findAll();
 
 #### update() : boolean|\ActiveRecord
-function to build update SQL, and update current record in database, just write the dirty data into database.
-if update success return current object, other wise return false.
+更新当前对象对应的数据库记录，每次更新的时候，只会将改变的值更新到数据库。
+更新成功返回当前对象，否则返回false
 
     $user->notnull('id')->orderby('id desc')->find();
     $user->email = 'test@example.com';
     $user->update();
 
 #### delete() : boolean
-function to delete current record in database. 
+删除当前对象在数据库中对应的记录
 
 #### reset() : \ActiveRecord
-function to reset the $params and $sqlExpressions. return $this, can using chain method calls.
+将$params, $sqlExpressions数组重置
 
 #### dirty(array  $dirty = array()) : \ActiveRecord
-function to SET or RESET the dirty data. The dirty data will be set, or empty array to reset the dirty data.
+这个函数用来设置或者重置dirty数据
 
-### SQL part functions
+### SQL部分帮助函数
 #### select()
-function to set the select columns.
+设置需要查找的字段
 
     $user->select('id', 'name')->find();
 
 #### from()
-function to set the table to find record
+设置查找的表
 
     $user->select('id', 'name')->from('user')->find();
 
 #### join()
-function to set the table to find record
+使用join函数设置连接表查询
 
     $user->join('contact', 'contact.user_id = user.id')->find();
 
 #### where()
-function to set where conditions
+设置where条件
 
     $user->where('id=1 AND name="demo"')->find();
 
@@ -86,7 +85,7 @@ function to set where conditions
 
     $user->orderby('name DESC')->limit(0, 1)->find();
 
-### WHERE conditions
+### WHERE 条件
 #### equal()/eq()
 
     $user->eq('id', 1)->find();
@@ -131,18 +130,19 @@ function to set where conditions
 
     $user->isnotnull('id')->find();
 
-## Install
+## 安装
 
     composer require bephp/activerecord 
 
-There's one [Blog demo](https://github.com/bephp/blog), work with [Router](https://github.com/bephp/router) and [MicoTpl](https://github.com/bephp/microtpl).
 
-## Demo
-### Include base class ActiveRecord
+这里有一个[博客的例子](https://github.com/bephp/blog), 与[Router](https://github.com/bephp/router)以及[MicoTpl](https://github.com/bephp/microtpl)一起组织起来使用。
+
+## 例子
+### 包含class ActiveRecord
 ```php
 include "ActiveRecord.php";
 ```
-### Define Class
+### 定义 Class
 ```php
 class User extends ActiveRecord{
 	public $table = 'user';
@@ -160,7 +160,7 @@ class Contact extends ActiveRecord{
 	);
 }
 ```
-### Init data
+### 初始化数据
 ```php
 ActiveRecord::setDb(new PDO('sqlite:test.db'));
 ActiveRecord::execute("CREATE TABLE IF NOT EXISTS user (
@@ -175,14 +175,14 @@ ActiveRecord::execute("CREATE TABLE IF NOT EXISTS contact (
                                 address TEXT
                         );");
 ```
-### Insert one User into database.
+### 插入数据
 ```php
 $user = new User();
 $user->name = 'demo';
 $user->password = md5('demo');
 var_dump($user->insert());
 ```
-### Insert one Contact belongs the current user.
+### 插入一个属于当前用户的联系方式
 ```php
 $contact = new Contact();
 $contact->address = 'test';
@@ -190,7 +190,7 @@ $contact->email = 'test1234456@domain.com';
 $contact->user_id = $user->id;
 var_dump($contact->insert());
 ```
-### Example to using relations 
+### 使用关联关系的例子
 ```php
 $user = new User();
 // find one user
