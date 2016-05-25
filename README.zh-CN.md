@@ -3,7 +3,7 @@
 [![Coverage Status](https://coveralls.io/repos/github/bephp/activerecord/badge.svg?branch=master)](https://coveralls.io/github/bephp/activerecord?branch=master)
 [![Latest Stable Version](https://poser.pugx.org/bephp/activerecord/v/stable)](https://packagist.org/packages/bephp/activerecord) [![Total Downloads](https://poser.pugx.org/bephp/activerecord/downloads)](https://packagist.org/packages/bephp/activerecord) [![Latest Unstable Version](https://poser.pugx.org/bephp/activerecord/v/unstable)](https://packagist.org/packages/bephp/activerecord) [![License](https://poser.pugx.org/bephp/activerecord/license)](https://packagist.org/packages/bephp/activerecord)
 
-一个微型的ActiveRecord库（包含注释才400行，支持链式调用以及关联关系）
+一个微型的ActiveRecord库（包含注释才400行)，支持链式调用以及（HAS_ONE， HAS_MANY， BELONGS_TO）三种关联关系
 
 ## 文档地址
 [文档](https://bephp.github.io/activerecord/)
