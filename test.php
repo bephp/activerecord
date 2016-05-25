@@ -54,6 +54,9 @@ $contact->user_id = $user->id;
 var_dump($contact->insert());
 
 var_dump($user->contact);
+echo "\n join\n";
+$contact = new Contact();
+var_dump($contact->select('user.*, contact.*')->join('user', 'user.id = contact.user_id')->find());
 /*
 $contact = new Contact();
 $contact->address = 'test';

@@ -62,6 +62,11 @@ function to set the table to find record
 
     $user->select('id', 'name')->from('user')->find();
 
+#### join()
+function to set the table to find record
+
+    $user->join('contact', 'contact.user_id = user.id')->find();
+
 #### where()
 function to set where conditions
 
