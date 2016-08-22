@@ -209,12 +209,16 @@ abstract class ActiveRecord extends Base {
         if (isset($relation[3]) && is_array($relation[3]))
             foreach((array)$relation[3] as $func => $args)
                 call_user_func_array(array($obj, $func), (array)$args);
+        $backref = isset($relation[4]) ? $relation[4] : '';
         if ((!$relation instanceof self) && self::HAS_ONE == $relation[0]) 
-            $obj->eq($relation[2], $this->{$this->primaryKey})->find();
+            $obj->eq($relation[2], $this->{$this->primaryKey})->find() && $backref && $obj->__set($backref, $this);
         elseif (is_array($relation) && self::HAS_MANY == $relation[0])
-            $this->relations[$name] = $obj->eq($relation[2], $this->{$this->primaryKey})->findAll();
+            $this->relations[$name] = array_map(function($o) use ($backref) {
+                $o->__set($backref, $this);
+                return $o;
+            }, $obj->eq($relation[2], $this->{$this->primaryKey})->findAll());
         elseif ((!$relation instanceof self) && self::BELONGS_TO == $relation[0])
-            $obj->eq($obj->primaryKey, $this->{$relation[2]})->find();
+            $obj->eq($obj->primaryKey, $this->{$relation[2]})->find() && $backref && $obj->__set($backref, $this);
         else throw new Exception("Relation $name not found.");
         return $this->relations[$name];
     }
@@ -350,6 +354,8 @@ abstract class ActiveRecord extends Base {
     public function __set($var, $val) {
         if (array_key_exists($var, $this->sqlExpressions) || array_key_exists($var, self::$defaultSqlExpressions))
             $this->sqlExpressions[$var] = $val;
+        else if (array_key_exists($var, $this->relations) && $val instanceof self)
+            $this->relations[$var] = $val;
         else $this->dirty[$var] = $this->data[$var] = $val;
     }
     /**

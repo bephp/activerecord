@@ -6,7 +6,7 @@ class User extends ActiveRecord{
 	public $primaryKey = 'id';
 	public $relations = array(
 		'contacts' => array(self::HAS_MANY, 'Contact', 'user_id'),
-		'contact' => array(self::HAS_ONE, 'Contact', 'user_id', array('where' => '1', 'order' => 'id desc')),
+		'contact' => array(self::HAS_ONE, 'Contact', 'user_id', array('where' => '1', 'order' => 'id desc'), 'user'),
 	);
 }
 class Contact extends ActiveRecord{
@@ -54,6 +54,8 @@ $contact->user_id = $user->id;
 var_dump($contact->insert());
 
 var_dump($user->contact);
+echo "\n -----";
+var_dump($user);
 echo "\n join\n";
 $contact = new Contact();
 var_dump($contact->select('user.*, contact.*')->join('user', 'user.id = contact.user_id')->find());
