@@ -12,6 +12,7 @@ class Contact extends ActiveRecord{
     public $table = 'contact';
     public $primaryKey = 'id';
     public $relations = array(
+        'user_with_backref' => array(self::BELONGS_TO, 'User', 'user_id', null, 'contact'),
         'user' => array(self::BELONGS_TO, 'User', 'user_id'),
     );  
 }
@@ -96,6 +97,14 @@ class ActiveRecordTest extends \PHPUnit_Framework_TestCase {
         $this->assertEquals($contact->user->contact->id, $contact->id);
         $this->assertEquals($contact->user->contacts[0]->id, $contact->id);
         $this->assertGreaterThan(0, count($contact->user->contacts));
+        return $contact;
+    }
+    /**
+     * @depends testRelations
+     */
+    public function testRelationsBackRef($contact){
+        $this->assertEquals($contact->user->contact === $contact, false);
+        $this->assertEquals($contact->user_with_backref->contact === $contact, true);
         return $contact;
     }
     /**

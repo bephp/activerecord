@@ -157,6 +157,8 @@ class Contact extends ActiveRecord{
 	public $primaryKey = 'id';
 	public $relations = array(
 		'user' => array(self::BELONGS_TO, 'User', 'user_id'),
+		'user_with_backref' => array(self::BELONGS_TO, 'User', 'user_id', array(), 'contact'),
+        // using 5th param to define backref
 	);
 }
 ```
