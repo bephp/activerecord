@@ -5,6 +5,7 @@ class User extends ActiveRecord{
     public $primaryKey = 'id';
     public $relations = array(
         'contacts' => array(self::HAS_MANY, 'Contact', 'user_id'),
+        'contacts_with_backref' => array(self::HAS_MANY, 'Contact', 'user_id', null, 'user'),
         'contact' => array(self::HAS_ONE, 'Contact', 'user_id', array('where' => '1', 'order' => 'id desc')),
     );  
 }
@@ -105,6 +106,10 @@ class ActiveRecordTest extends \PHPUnit_Framework_TestCase {
     public function testRelationsBackRef($contact){
         $this->assertEquals($contact->user->contact === $contact, false);
         $this->assertEquals($contact->user_with_backref->contact === $contact, true);
+        $user = $contact->user;
+        $this->assertEquals($user->contacts[0]->user === $user, false);
+        $this->assertEquals($user->contacts_with_backref[0]->user === $user, true);
+
         return $contact;
     }
     /**
