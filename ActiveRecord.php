@@ -212,12 +212,12 @@ abstract class ActiveRecord extends Base {
         $backref = isset($relation[4]) ? $relation[4] : '';
         if ((!$relation instanceof self) && self::HAS_ONE == $relation[0]) 
             $obj->eq($relation[2], $this->{$this->primaryKey})->find() && $backref && $obj->__set($backref, $this);
-        elseif (is_array($relation) && self::HAS_MANY == $relation[0])
-            $this->relations[$name] = array_map(function($o) use ($backref) {
-                $o->__set($backref, $this);
-                return $o;
-            }, $obj->eq($relation[2], $this->{$this->primaryKey})->findAll());
-        elseif ((!$relation instanceof self) && self::BELONGS_TO == $relation[0])
+        elseif (is_array($relation) && self::HAS_MANY == $relation[0]) {
+            $this->relations[$name] = $obj->eq($relation[2], $this->{$this->primaryKey})->findAll();
+            if ($backref)
+                foreach($this->relations[$name] as $o)
+                    $o->__set($backref, $this);
+        } elseif ((!$relation instanceof self) && self::BELONGS_TO == $relation[0])
             $obj->eq($obj->primaryKey, $this->{$relation[2]})->find() && $backref && $obj->__set($backref, $this);
         else throw new Exception("Relation $name not found.");
         return $this->relations[$name];
