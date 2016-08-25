@@ -186,7 +186,8 @@ abstract class ActiveRecord extends Base {
      */
     public static function _query($sql, $param = array(), $obj = null, $single=false) {
         if ($sth = self::$db->prepare($sql)) {
-            $sth->setFetchMode( PDO::FETCH_INTO , ($obj ? $obj : new get_called_class()));
+            $called_class = get_called_class();
+	    $sth->setFetchMode( PDO::FETCH_INTO , ($obj ? $obj : new $called_class ));
             $sth->execute($param);
             if ($single) return $sth->fetch( PDO::FETCH_INTO ) ? $obj->dirty() : false;
             $result = array();
