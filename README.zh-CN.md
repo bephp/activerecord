@@ -157,6 +157,8 @@ class Contact extends ActiveRecord{
 	public $primaryKey = 'id';
 	public $relations = array(
 		'user' => array(self::BELONGS_TO, 'User', 'user_id'),
+		'user_with_backref' => array(self::BELONGS_TO, 'User', 'user_id', null, 'contact'),
+        // 使用第五个参数定义一个backref属性，可以在使用反向的关联关系的时候，不用重复查询数据库。
 	);
 }
 ```
