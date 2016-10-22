@@ -162,7 +162,7 @@ abstract class ActiveRecord extends Base {
             'target' => new WrapExpressions(array('target' => array_keys($this->dirty)))));
         $this->values = new Expressions(array('operator'=> 'VALUES', 'target' => new WrapExpressions(array('target' => $value))));
         if (self::execute($this->_buildSql(array('insert', 'values')), $this->params)) {
-            $this->id = self::$db->lastInsertId();
+            $this->{$this->primaryKey} = self::$db->lastInsertId();
             return $this->dirty()->reset();
         }
         return false;
