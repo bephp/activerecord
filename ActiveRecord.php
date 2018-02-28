@@ -174,7 +174,9 @@ abstract class ActiveRecord extends Base {
      * @return bool 
      */
     public static function execute($sql, $param = array()) {
-        return  (($sth = self::$db->prepare($sql)) && $sth->execute($param));
+        $res = (($sth = self::$db->prepare($sql)) && $sth->execute($param));
+        if (!$res) throw new Exception($sth->errorInfo());
+        return $res;
     }
     /**
      * helper function to query one record by sql and params.
