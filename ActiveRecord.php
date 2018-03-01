@@ -175,7 +175,7 @@ abstract class ActiveRecord extends Base {
      */
     public static function execute($sql, $param = array()) {
         $res = (($sth = self::$db->prepare($sql)) && $sth->execute($param));
-        if (!$res) throw new Exception($sth->errorInfo());
+        if (!$res) throw new Exception($sth->errorInfo()[2]);
         return $res;
     }
     /**
